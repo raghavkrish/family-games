@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #0b0a12;
+  --cream: #fff6e8;
+  --coral: #ff3d6e;
+  --acid: #ffc700;
+  --cyan: #00f0ff;
+  --stage: #16122a;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-cream: var(--cream);
+  --color-coral: var(--coral);
+  --color-acid: var(--acid);
+  --color-cyan: var(--cyan);
+  --color-stage: var(--stage);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-body);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), Impact, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.party-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+.party-shell {
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(255, 61, 110, 0.35), transparent 45%),
+    radial-gradient(ellipse at 80% 0%, rgba(0, 240, 255, 0.25), transparent 40%),
+    radial-gradient(ellipse at 50% 100%, rgba(255, 199, 0, 0.2), transparent 45%),
+    var(--ink);
+}
+
+.btn-chunky {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  border: 3px solid #111;
+  padding: 0.65rem 1.1rem;
+  font-family: var(--font-display), Impact, sans-serif;
+  font-size: 0.95rem;
+  color: var(--ink);
+  box-shadow: 4px 4px 0 #111;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.btn-chunky:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #111;
+}
+
+.btn-chunky:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.input-chunky {
+  border-radius: 1rem;
+  border: 3px solid #111;
+  background: var(--cream);
+  color: var(--ink);
+  padding: 0.7rem 0.9rem;
+  font-size: 1rem;
+  box-shadow: 4px 4px 0 #ff3d6e;
+  outline: none;
+}
+
+.input-chunky:focus {
+  box-shadow: 4px 4px 0 #00f0ff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
