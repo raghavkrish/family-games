@@ -35,7 +35,15 @@ export type ClientMessage =
   | { type: "pickGame"; gameId: GameId }
   | { type: "endGame" }
   | { type: "backToLobby" }
+  | { type: "clearConnections" }
+  | { type: "closeRoom" }
   | { type: "gameAction"; action: GameAction };
+
+/** WebSocket close code when the host clears all player connections. */
+export const WS_CLOSE_CLEARED = 4000;
+
+/** WebSocket close code when the host closes the entire room. */
+export const WS_CLOSE_ROOM = 4001;
 
 export type ServerMessage =
   | { type: "state"; state: RoomState; you: { connectionId: string; playerId: string | null; role: "host" | "player" } }
