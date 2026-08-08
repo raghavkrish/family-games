@@ -1,4 +1,5 @@
 import type {
+  BuzzerRoundState,
   CharadesState,
   GameAction,
   GameContext,
@@ -10,6 +11,16 @@ import type {
 import { createBuzzerState, reduceBuzzer, shuffleIds } from "./buzzer";
 import { getPack } from "./packs";
 
+function puzzleTileCount(puzzle?: {
+  emojiClues?: string[];
+  imageUrls?: string[];
+}): number {
+  if (!puzzle) return 0;
+  if (puzzle.imageUrls?.length) return puzzle.imageUrls.length;
+  if (puzzle.emojiClues?.length) return puzzle.emojiClues.length;
+  return 2; // fallback placeholders in UI
+}
+
 export function createGameState(
   gameId: GameId,
   packId: string,
@@ -18,12 +29,17 @@ export function createGameState(
 
   if (gameId === "tent-kottai") {
     const ids = shuffleIds(pack.games["tent-kottai"].puzzles.map((p) => p.id));
-    return { gameId, ...createBuzzerState(ids) };
+    return { gameId, revealedCount: 0, ...createBuzzerState(ids) };
   }
 
   if (gameId === "sound-party") {
     const ids = shuffleIds(pack.games["sound-party"].tracks.map((t) => t.id));
-    return { gameId, audioPlaying: false, ...createBuzzerState(ids) };
+    return {
+      gameId,
+      audioPlaying: true,
+      ...createBuzzerState(ids),
+      mode: "open",
+    };
   }
 
   const movies = pack.games["tamil-charades"].movies;
@@ -51,8 +67,50 @@ export function reduceGame(
   if (gameId === "tent-kottai") {
     const s = state as TentKottaiState;
     const rules = pack.games["tent-kottai"].rules;
-    const result = reduceBuzzer(s, action, ctx, pack.games["tent-kottai"].puzzles, rules.pointsCorrect);
-    return { ...result, state: { ...result.state, gameId: "tent-kottai" } };
+    const puzzles = pack.games["tent-kottai"].puzzles;
+
+    if (action.type === "revealNext") {
+      const puzzle = puzzles.find((p) => p.id === s.clueIds[s.clueIndex]);
+      const tileCount = puzzleTileCount(puzzle);
+      if (s.revealedCount >= tileCount) {
+        return { state: s, scores: ctx.scores };
+      }
+      const revealedCount = s.revealedCount + 1;
+      // First visible clue opens buzzers — no separate Open Buzzers step.
+      const openBuzzers = s.mode === "idle";
+      return {
+        state: {
+          ...s,
+          revealedCount,
+          ...(openBuzzers
+            ? {
+                mode: "open" as const,
+                lockedBy: null,
+                submittedAnswer: null,
+                lastResult: null,
+              }
+            : {}),
+        },
+        scores: ctx.scores,
+        event: openBuzzers ? "round-open" : "clue-reveal",
+        payload: { revealedCount, tileCount },
+      };
+    }
+
+    const result = reduceBuzzer(s, action, ctx, puzzles, rules.pointsCorrect);
+    const nextBase = result.state as BuzzerRoundState;
+    const revealedCount =
+      action.type === "nextRound" && result.event !== "game-complete"
+        ? 0
+        : (s.revealedCount ?? 0);
+    return {
+      ...result,
+      state: {
+        ...nextBase,
+        gameId: "tent-kottai" as const,
+        revealedCount,
+      },
+    };
   }
 
   if (gameId === "sound-party") {
@@ -63,22 +121,26 @@ export function reduceGame(
       answer: t.title,
       accept: t.accept,
     }));
-    if (action.type === "startRound") {
-      const result = reduceBuzzer(s, action, ctx, clues, rules.pointsCorrect);
-      return {
-        ...result,
-        state: { ...result.state, gameId: "sound-party", audioPlaying: true },
-        event: result.event ?? "round-open",
-        payload: { ...(result.payload ?? {}), scene: "vinyl-spin" },
-      };
-    }
     const result = reduceBuzzer(s, action, ctx, clues, rules.pointsCorrect);
+    // Auto-open on each new track (start + next) so hosts never need Open Buzzers.
+    const autoOpen =
+      action.type === "nextRound" && result.event !== "game-complete";
+    const mode = autoOpen ? ("open" as const) : result.state.mode;
+    const audioPlaying = mode === "open" || action.type === "startRound";
     return {
       ...result,
       state: {
         ...result.state,
-        gameId: "sound-party",
-        audioPlaying: result.state.mode === "open",
+        mode,
+        gameId: "sound-party" as const,
+        audioPlaying,
+      },
+      event: autoOpen ? "round-open" : result.event,
+      payload: {
+        ...(result.payload ?? {}),
+        ...(action.type === "startRound" || autoOpen
+          ? { scene: "vinyl-spin" }
+          : {}),
       },
     };
   }

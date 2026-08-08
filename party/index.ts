@@ -354,6 +354,7 @@ export default class Server implements Party.Server {
           "judge",
           "nextRound",
           "startRound",
+          "revealNext",
           "charadesCorrect",
           "charadesSkip",
           "setActor",

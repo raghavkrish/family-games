@@ -4,7 +4,7 @@ import { Suspense, use, useEffect, useMemo, useRef, useState } from "react";
 import { PartyShell } from "@/components/shell/PartyShell";
 import { useRoom } from "@/lib/room/client";
 import { getGame } from "@/games";
-import { slamIn, useGsapReady } from "@/lib/motion";
+import { teamPickerEnter, takeoverPulse, useGsapReady } from "@/lib/motion";
 
 function PlayInner({ roomCode }: { roomCode: string }) {
   const roomApi = useRoom(roomCode, "player");
@@ -20,6 +20,7 @@ function PlayInner({ roomCode }: { roomCode: string }) {
   } = roomApi;
   const [pendingTeam, setPendingTeam] = useState<"a" | "b" | null>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
+  const takeoverRef = useRef<HTMLDivElement>(null);
   const ready = useGsapReady();
 
   const active = state?.activeGameId ? getGame(state.activeGameId) : null;
@@ -27,9 +28,7 @@ function PlayInner({ roomCode }: { roomCode: string }) {
 
   useEffect(() => {
     if (!ready || !pickerRef.current || me?.team) return;
-    slamIn(pickerRef.current.querySelector(".pick-title"));
-    slamIn(pickerRef.current.querySelector(".team-a"), 0.08);
-    slamIn(pickerRef.current.querySelector(".team-b"), 0.16);
+    teamPickerEnter(pickerRef.current);
   }, [ready, me?.team, connected]);
 
   useEffect(() => {
@@ -37,6 +36,12 @@ function PlayInner({ roomCode }: { roomCode: string }) {
       setPendingTeam(lastError.payload.team as "a" | "b");
     }
   }, [lastError]);
+
+  useEffect(() => {
+    if (pendingTeam && takeoverRef.current) {
+      takeoverPulse(takeoverRef.current);
+    }
+  }, [pendingTeam]);
 
   const stage = useMemo(() => {
     if (!state || !connected) {
@@ -96,7 +101,10 @@ function PlayInner({ roomCode }: { roomCode: string }) {
             </button>
           </div>
           {lastError?.code === "team-taken" && pendingTeam && (
-            <div className="mt-2 rounded-2xl border-4 border-ink bg-acid p-4 text-ink shadow-[4px_4px_0_#111]">
+            <div
+              ref={takeoverRef}
+              className="mt-2 rounded-2xl border-4 border-ink bg-acid p-4 text-ink shadow-[4px_4px_0_#111]"
+            >
               <p className="font-display text-lg">
                 Team {pendingTeam.toUpperCase()} already has a buzzer
               </p>

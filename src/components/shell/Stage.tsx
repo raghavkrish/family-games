@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import { Flip, useGsapReady } from "@/lib/motion";
+import { Flip, stageSoftFade, useGsapReady } from "@/lib/motion";
 
 export function Stage({ children, stageKey }: { children: ReactNode; stageKey: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -12,18 +12,24 @@ export function Stage({ children, stageKey }: { children: ReactNode; stageKey: s
     if (!ready || !ref.current) return;
     if (prevKey.current === stageKey) return;
     prevKey.current = stageKey;
-    const state = Flip.getState(ref.current);
-    Flip.from(state, {
-      duration: 0.45,
-      ease: "power2.inOut",
-      absolute: true,
-      onEnter: (els) =>
-        Flip.from(Flip.getState(els), {
-          duration: 0.35,
-          fade: true,
-          scale: true,
-        }),
-    });
+    const inner = ref.current.querySelector(":scope > div") as HTMLElement | null;
+    try {
+      const state = Flip.getState(ref.current);
+      Flip.from(state, {
+        duration: 0.45,
+        ease: "power2.inOut",
+        absolute: true,
+        onEnter: (els) =>
+          Flip.from(Flip.getState(els), {
+            duration: 0.35,
+            fade: true,
+            scale: true,
+          }),
+      });
+    } catch {
+      stageSoftFade(inner);
+    }
+    stageSoftFade(inner);
   }, [stageKey, ready, children]);
 
   return (

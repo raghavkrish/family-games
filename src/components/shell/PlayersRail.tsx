@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useShell } from "./ShellContext";
-import { staggerPop, useGsapReady } from "@/lib/motion";
+import { shellChromeEnter, useGsapReady } from "@/lib/motion";
 
 export function PlayersRail() {
   const { players, density, scores } = useShell();
@@ -12,7 +12,7 @@ export function PlayersRail() {
   useEffect(() => {
     if (!ready || !listRef.current) return;
     const cards = listRef.current.querySelectorAll(".player-chip");
-    if (cards.length) staggerPop(cards);
+    if (cards.length) shellChromeEnter({ playerChips: cards });
   }, [ready, players.length]);
 
   if (density === "landing") return null;

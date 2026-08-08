@@ -27,6 +27,7 @@ function partyPort() {
  * Never use 127.0.0.1 on a phone — use the same hostname as the page (LAN IP).
  */
 export function partyHost() {
+  const defaultPort = process.env.NEXT_PUBLIC_PARTYKIT_PORT ?? "1999";
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
     const port = partyPort();
@@ -45,7 +46,7 @@ export function partyHost() {
     // Local / LAN: always match the page host (localhost on TV, 192.168.x on phones)
     return `${hostname}:${port}`;
   }
-  return process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? "127.0.0.1:1999";
+  return process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? `127.0.0.1:${defaultPort}`;
 }
 
 export function createRoomCode(): string {

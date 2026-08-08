@@ -1,10 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { GameViewProps } from "@/games";
 import type { CharadesState } from "@shared/types";
 import { getPack } from "@shared/packs";
-import { motionBus, slamIn, useGsapReady } from "@/lib/motion";
+import {
+  clueSoftIn,
+  motionBus,
+  stampIn,
+  timerNudge,
+  useGsapReady,
+} from "@/lib/motion";
 
 export function CharadesHost({ room, onAction }: GameViewProps) {
   const state = room.gameState as CharadesState;
@@ -17,6 +23,9 @@ export function CharadesHost({ room, onAction }: GameViewProps) {
   );
   const ready = useGsapReady();
   const [remaining, setRemaining] = useState<number | null>(null);
+  const timerRef = useRef<HTMLDivElement>(null);
+  const answerRef = useRef<HTMLParagraphElement>(null);
+  const prevRemaining = useRef<number | null>(null);
 
   useEffect(() => {
     motionBus.emit("scene", { cue: "reel-spin" });
@@ -34,10 +43,29 @@ export function CharadesHost({ room, onAction }: GameViewProps) {
   }, [state.mode, state.endsAt]);
 
   useEffect(() => {
-    if (!ready) return;
-    const el = document.querySelector(".charades-timer") as HTMLElement | null;
-    slamIn(el);
-  }, [ready, state.clueIndex]);
+    if (!ready || state.mode !== "acting") return;
+    clueSoftIn(timerRef.current);
+  }, [ready, state.clueIndex, state.mode]);
+
+  useEffect(() => {
+    if (remaining == null) {
+      prevRemaining.current = null;
+      return;
+    }
+    if (
+      remaining <= 10 &&
+      prevRemaining.current !== null &&
+      remaining < prevRemaining.current
+    ) {
+      timerNudge(timerRef.current);
+    }
+    prevRemaining.current = remaining;
+  }, [remaining]);
+
+  useEffect(() => {
+    if (!ready || state.mode !== "reveal") return;
+    stampIn(answerRef.current);
+  }, [ready, state.mode, state.clueIndex]);
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-6 text-center">
@@ -52,7 +80,10 @@ export function CharadesHost({ room, onAction }: GameViewProps) {
         </strong>
       </p>
       {state.mode === "acting" && (
-        <div className="charades-timer font-display text-7xl text-coral md:text-9xl">
+        <div
+          ref={timerRef}
+          className="charades-timer font-display text-7xl text-coral md:text-9xl"
+        >
           {remaining ?? "—"}
         </div>
       )}
@@ -60,7 +91,9 @@ export function CharadesHost({ room, onAction }: GameViewProps) {
         Title stays off the TV. Only that team’s buzzer phone shows the movie.
       </p>
       {state.mode === "reveal" && (
-        <p className="font-display text-4xl text-acid">{movie?.title}</p>
+        <p ref={answerRef} className="font-display text-4xl text-acid">
+          {movie?.title}
+        </p>
       )}
       <div className="flex flex-wrap justify-center gap-2">
         {state.mode === "idle" && (
@@ -123,12 +156,20 @@ export function CharadesPlayer({ room, playerId }: GameViewProps) {
     () => (showSecret ? movie?.title : null),
     [showSecret, movie],
   );
+  const secretRef = useRef<HTMLDivElement>(null);
+  const ready = useGsapReady();
+
+  useEffect(() => {
+    if (!ready || !showSecret) return;
+    stampIn(secretRef.current);
+  }, [ready, showSecret, secret]);
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 p-2 text-center">
       <p className="font-display text-xl text-cream">Cinema Charades</p>
       {showSecret ? (
         <div
+          ref={secretRef}
           className="w-full max-w-sm rounded-[2rem] border-8 border-ink bg-acid px-6 py-10 shadow-[8px_8px_0_#ff3d6e]"
           style={{ transformStyle: "preserve-3d" }}
         >

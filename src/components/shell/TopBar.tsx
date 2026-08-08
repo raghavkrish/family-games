@@ -2,18 +2,23 @@
 
 import { useEffect, useRef } from "react";
 import { useShell } from "./ShellContext";
-import { stampIn, useGsapReady } from "@/lib/motion";
+import { shellChromeEnter, useGsapReady } from "@/lib/motion";
 
 export function TopBar() {
   const { roomCode, gameLabel, packLabel, density, connected } = useShell();
   const brandRef = useRef<HTMLHeadingElement>(null);
   const codeRef = useRef<HTMLDivElement>(null);
   const ready = useGsapReady();
+  const entered = useRef(false);
 
   useEffect(() => {
     if (!ready) return;
-    stampIn(brandRef.current);
-    if (codeRef.current) stampIn(codeRef.current);
+    if (!entered.current) {
+      shellChromeEnter({ brand: brandRef.current, code: codeRef.current });
+      entered.current = true;
+      return;
+    }
+    if (codeRef.current) shellChromeEnter({ code: codeRef.current });
   }, [ready, roomCode]);
 
   return (

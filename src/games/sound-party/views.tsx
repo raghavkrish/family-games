@@ -5,7 +5,8 @@ import type { GameViewProps } from "@/games";
 import type { SoundPartyState } from "@shared/types";
 import { getPack } from "@shared/packs";
 import { BuzzButton, HostJudgeBar } from "@/components/buzzer/BuzzControls";
-import { motionBus, pulse, useGsapReady } from "@/lib/motion";
+import { HostBuzzTakeover } from "@/components/buzzer/HostBuzzTakeover";
+import { discGroove, motionBus, stampIn, useGsapReady } from "@/lib/motion";
 
 export function SoundPartyHost({ room, onAction }: GameViewProps) {
   const state = room.gameState as SoundPartyState;
@@ -16,7 +17,9 @@ export function SoundPartyHost({ room, onAction }: GameViewProps) {
   const locked = room.players.find((p) => p.id === state.lockedBy);
   const audioRef = useRef<HTMLAudioElement>(null);
   const discRef = useRef<HTMLDivElement>(null);
+  const answerRef = useRef<HTMLDivElement>(null);
   const ready = useGsapReady();
+  const grooveRef = useRef<ReturnType<typeof discGroove>>(null);
 
   useEffect(() => {
     motionBus.emit("scene", { cue: "vinyl-spin" });
@@ -25,23 +28,39 @@ export function SoundPartyHost({ room, onAction }: GameViewProps) {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !track) return;
-    if (state.mode === "open" || state.audioPlaying) {
+    const spinning = state.mode === "open" || state.audioPlaying;
+    if (spinning) {
       audio.currentTime = 0;
       void audio.play().catch(() => undefined);
-      if (ready) pulse(discRef.current);
+      if (ready) {
+        grooveRef.current?.kill();
+        grooveRef.current = discGroove(discRef.current);
+      }
     } else {
       audio.pause();
+      grooveRef.current?.kill();
+      grooveRef.current = null;
     }
+    return () => {
+      grooveRef.current?.kill();
+      grooveRef.current = null;
+    };
   }, [state.mode, state.clueIndex, state.audioPlaying, track, ready]);
 
+  useEffect(() => {
+    if (!ready || state.mode !== "reveal" || state.lastResult !== "correct") return;
+    stampIn(answerRef.current);
+  }, [ready, state.mode, state.lastResult, state.clueIndex]);
+
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-6">
+    <div className="relative flex h-full flex-col items-center justify-center gap-6">
+      {state.mode === "locked" && <HostBuzzTakeover lockedPlayer={locked} />}
       <p className="font-display text-sm uppercase tracking-widest text-coral">Sound Party</p>
       <div
         ref={discRef}
         className="relative flex h-48 w-48 items-center justify-center rounded-full border-8 border-ink bg-gradient-to-br from-ink to-coral shadow-[0_0_0_8px_#ffc700,8px_8px_0_#00f0ff] md:h-64 md:w-64"
       >
-        <div className="h-16 w-16 rounded-full bg-acid border-4 border-ink" />
+        <div className="h-16 w-16 rounded-full border-4 border-ink bg-acid" />
         <div className="absolute inset-6 rounded-full border border-cream/20" />
       </div>
       <audio ref={audioRef} src={track?.audioUrl} preload="auto" />
@@ -49,7 +68,7 @@ export function SoundPartyHost({ room, onAction }: GameViewProps) {
         Clue {state.clueIndex + 1}/{state.clueIds.length}
       </p>
       {state.mode === "reveal" && state.lastResult === "correct" && (
-        <div className="text-center">
+        <div ref={answerRef} className="text-center">
           <p className="font-display text-4xl text-acid">{track?.title}</p>
           {track?.movie && <p className="text-cream/70">{track.movie}</p>}
         </div>
@@ -57,8 +76,8 @@ export function SoundPartyHost({ room, onAction }: GameViewProps) {
       <HostJudgeBar
         mode={state.mode}
         lockedByName={locked?.name}
+        lockedTeam={locked?.team ?? null}
         submittedAnswer={state.submittedAnswer}
-        onStart={() => onAction({ type: "startRound" })}
         onCorrect={() => onAction({ type: "judge", correct: true })}
         onWrong={() => onAction({ type: "judge", correct: false })}
         onNext={() => onAction({ type: "nextRound" })}

@@ -52,6 +52,7 @@ export type GameAction =
   | { type: "judge"; correct: boolean }
   | { type: "nextRound" }
   | { type: "startRound" }
+  | { type: "revealNext" }
   | { type: "charadesCorrect" }
   | { type: "charadesSkip" }
   | { type: "setActor"; playerId: string }
@@ -74,6 +75,7 @@ export type BuzzerRoundState = {
 
 export type TentKottaiState = BuzzerRoundState & {
   gameId: "tent-kottai";
+  revealedCount: number;
 };
 
 export type SoundPartyState = BuzzerRoundState & {

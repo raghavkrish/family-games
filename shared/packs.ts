@@ -1,3 +1,11 @@
+/** Six local rebus photos under public/packs/tamil-party/tent-kottai/{slug}/ */
+function tentImages(slug: string): string[] {
+  return [1, 2, 3, 4, 5, 6].map(
+    (n) =>
+      `/packs/tamil-party/tent-kottai/${slug}/${String(n).padStart(2, "0")}.jpg`,
+  );
+}
+
 export type Pack = {
   id: string;
   title: string;
@@ -42,66 +50,82 @@ export const TAMIL_PARTY_PACK: Pack = {
         {
           id: "tk-1",
           category: "Movie",
-          imageUrls: [],
-          emojiClues: ["🦁", "👑"],
+          imageUrls: tentImages("lion-king"),
+          emojiClues: ["🦁", "👑", "🎵", "🌅", "🦒", "🌍"],
           answer: "The Lion King",
           accept: ["lion king", "the lion king"],
         },
         {
           id: "tk-2",
           category: "Movie",
-          imageUrls: [],
-          emojiClues: ["🤖", "❤️"],
+          imageUrls: tentImages("enthiran"),
+          emojiClues: ["🤖", "❤️", "🔬", "🦵", "💥", "🧑‍🎤"],
           answer: "Enthiran",
           accept: ["enthiran", "robot", "endooran"],
         },
         {
           id: "tk-3",
           category: "Song / Movie",
-          imageUrls: [],
-          emojiClues: ["🌧️", "❤️", "🎬"],
+          imageUrls: tentImages("vtv"),
+          emojiClues: ["🌧️", "❤️", "🎬", "✈️", "🎸", "🌃"],
           answer: "Vinnaithaandi Varuvaayaa",
           accept: ["vinnaithaandi varuvaayaa", "vtv", "vinnai thandi varuvaya"],
         },
         {
           id: "tk-4",
           category: "Person",
-          imageUrls: [],
-          emojiClues: ["🏏", "⭐", "🎤"],
+          imageUrls: tentImages("dhanush"),
+          emojiClues: ["🏏", "⭐", "🎤", "🕺", "🔥", "🎬"],
           answer: "Dhanush",
           accept: ["dhanush"],
         },
         {
           id: "tk-5",
           category: "Movie",
-          imageUrls: [],
-          emojiClues: ["👮", "🔥", "🏙️"],
+          imageUrls: tentImages("kaakha"),
+          emojiClues: ["👮", "🔥", "🏙️", "🔫", "🚗", "🌙"],
           answer: "Kaakha Kaakha",
           accept: ["kaakha kaakha", "kaka kaka", "kaaka kaaka"],
         },
         {
           id: "tk-6",
           category: "Movie",
-          imageUrls: [],
-          emojiClues: ["🏫", "👦", "📚"],
+          imageUrls: tentImages("nanban"),
+          emojiClues: ["🏫", "👦", "📚", "🚲", "😂", "👨‍🎓"],
           answer: "Nanban",
           accept: ["nanban", "3 idiots"],
         },
         {
           id: "tk-7",
           category: "Place",
-          imageUrls: [],
-          emojiClues: ["🌊", "🏖️", "🇮🇳"],
+          imageUrls: tentImages("marina"),
+          emojiClues: ["🌊", "🏖️", "🇮🇳", "🌅", "🚶", "📸"],
           answer: "Marina Beach",
           accept: ["marina", "marina beach"],
         },
         {
           id: "tk-8",
           category: "Movie",
-          imageUrls: [],
-          emojiClues: ["🐍", "💎", "🗡️"],
+          imageUrls: tentImages("dasavatharam"),
+          emojiClues: ["🐍", "💎", "🗡️", "🔟", "🎭", "🧬"],
           answer: "Dasavatharam",
           accept: ["dasavatharam", "dasavathaaram"],
+        },
+        {
+          id: "tk-9",
+          category: "Movie",
+          imageUrls: tentImages("ghilli"),
+          emojiClues: ["🐯", "🥊", "🩸", "🏋️", "😤", "🏆"],
+          answer: "Ghilli",
+          accept: ["ghilli", "gilli"],
+        },
+        {
+          id: "tk-10",
+          category: "Movie",
+          imageUrls: tentImages("vikram"),
+          emojiClues: ["🕶️", "🔫", "🧓", "🚓", "💣", "🕵️"],
+          answer: "Vikram",
+          accept: ["vikram"],
         },
       ],
     },

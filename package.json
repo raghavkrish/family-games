@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently -k -n next,party -c cyan,magenta \"next dev --hostname 0.0.0.0 --port 3000\" \"partykit dev --port 1999\"",
-    "dev:next": "next dev --hostname 0.0.0.0 --port 3000",
-    "dev:party": "partykit dev --port 1999",
+    "dev": "node scripts/run-app.mjs dev",
+    "dev:next": "node scripts/run-app.mjs dev:next",
+    "dev:party": "node scripts/run-app.mjs dev:party",
     "build": "next build",
-    "start": "next start",
+    "start": "node scripts/run-app.mjs start",
+    "start:next": "node scripts/run-app.mjs start:next",
     "lint": "eslint",
     "deploy:party": "partykit deploy"
   },
