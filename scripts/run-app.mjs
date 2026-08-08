@@ -44,7 +44,12 @@ for (const [key, val] of Object.entries(fromFiles)) {
 const mode = process.argv[2] ?? "dev";
 const host = process.env.HOST ?? "0.0.0.0";
 const port = process.env.PORT ?? "3000";
-const partyPort = process.env.NEXT_PUBLIC_PARTYKIT_PORT ?? "1999";
+// Process listen port (nginx proxies here). Empty NEXT_PUBLIC_PARTYKIT_PORT
+// means "browser uses 443"; PartyKit still listens on PARTYKIT_PORT or 1999.
+const partyPort =
+  process.env.PARTYKIT_PORT?.trim() ||
+  process.env.NEXT_PUBLIC_PARTYKIT_PORT?.trim() ||
+  "1999";
 
 const nextBin = resolve(root, "node_modules/.bin/next");
 const partyBin = resolve(root, "node_modules/.bin/partykit");

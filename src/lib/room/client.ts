@@ -17,41 +17,57 @@ function isForcedClose(code: number) {
   return code === WS_CLOSE_CLEARED || code === WS_CLOSE_ROOM;
 }
 
-/** Party port only — hostname follows the page so phones on LAN work. */
+/** Omit :80 / :443 so PartySocket uses standard http(s)/ws(s). */
+function withOptionalPort(hostname: string, port: string | undefined) {
+  const p = (port ?? "").trim();
+  if (!p || p === "80" || p === "443") return hostname;
+  return `${hostname}:${p}`;
+}
+
 function partyPort() {
-  const fromEnv = process.env.NEXT_PUBLIC_PARTYKIT_HOST;
+  const fromEnv = process.env.NEXT_PUBLIC_PARTYKIT_HOST?.trim();
   if (fromEnv?.includes(":")) {
     const port = fromEnv.split(":").pop();
     if (port && /^\d+$/.test(port)) return port;
   }
-  return process.env.NEXT_PUBLIC_PARTYKIT_PORT ?? "1999";
+  // Empty string in prod (behind nginx :443) → no port suffix
+  const explicit = process.env.NEXT_PUBLIC_PARTYKIT_PORT;
+  if (explicit !== undefined && explicit.trim() === "") return "";
+  return explicit?.trim() || "1999";
 }
 
 /**
  * Resolve PartyKit host for the current device.
- * Never use 127.0.0.1 on a phone — use the same hostname as the page (LAN IP).
+ * - Prod HTTPS: NEXT_PUBLIC_PARTYKIT_HOST=party.example.com (no :1999)
+ * - LAN: same hostname as the page + NEXT_PUBLIC_PARTYKIT_PORT (default 1999)
  */
 export function partyHost() {
-  const defaultPort = process.env.NEXT_PUBLIC_PARTYKIT_PORT ?? "1999";
+  const resolvedPort = partyPort();
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
-    const port = partyPort();
     const fromEnv = process.env.NEXT_PUBLIC_PARTYKIT_HOST?.trim();
 
-    // Deployed PartyKit host (e.g. project.username.partykit.dev) — use as-is
+    // Deployed / public PartyKit host — not loopback or raw LAN IP in env
     if (
       fromEnv &&
       !fromEnv.startsWith("127.") &&
       !fromEnv.startsWith("localhost") &&
-      !fromEnv.match(/^\d+\.\d+\.\d+\.\d+/)
+      !/^\d+\.\d+\.\d+\.\d+/.test(fromEnv)
     ) {
-      return fromEnv.includes(":") ? fromEnv : `${fromEnv}:${port}`;
+      if (fromEnv.includes(":")) {
+        const [host, port] = fromEnv.split(":");
+        return withOptionalPort(host, port);
+      }
+      return withOptionalPort(fromEnv, resolvedPort);
     }
 
-    // Local / LAN: always match the page host (localhost on TV, 192.168.x on phones)
-    return `${hostname}:${port}`;
+    // Local / LAN: match the page host (localhost on TV, 192.168.x on phones)
+    return withOptionalPort(hostname, resolvedPort || "1999");
   }
-  return process.env.NEXT_PUBLIC_PARTYKIT_HOST ?? `127.0.0.1:${defaultPort}`;
+  return (
+    process.env.NEXT_PUBLIC_PARTYKIT_HOST ??
+    withOptionalPort("127.0.0.1", resolvedPort || "1999")
+  );
 }
 
 export function createRoomCode(): string {
