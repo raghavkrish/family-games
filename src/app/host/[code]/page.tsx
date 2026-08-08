@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useEffect, useMemo, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { PartyShell } from "@/components/shell/PartyShell";
 import { teamBuzzerOnline, useRoom } from "@/lib/room/client";
@@ -129,9 +130,20 @@ function HostLobby({
 
 export default function HostPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = use(params);
+  const router = useRouter();
   const roomCode = code.toUpperCase();
   const roomApi = useRoom(roomCode, "host");
-  const { state, connected, pickGame, setPack, endGame, backToLobby, gameAction } = roomApi;
+  const {
+    state,
+    connected,
+    pickGame,
+    setPack,
+    endGame,
+    backToLobby,
+    clearConnections,
+    closeRoom,
+    gameAction,
+  } = roomApi;
 
   const joinUrl =
     typeof window !== "undefined"
@@ -227,8 +239,41 @@ export default function HostPage({ params }: { params: Promise<{ code: string }>
               End game
             </button>
           )}
-          <button type="button" className="btn-chunky bg-cream/30 text-cream" onClick={backToLobby}>
+          <button type="button" className="btn-chunky bg-cream" onClick={backToLobby}>
             Lobby
+          </button>
+          <button
+            type="button"
+            className="btn-chunky bg-coral/90"
+            title="Kick every phone and reset the room to lobby"
+            onClick={() => {
+              if (
+                typeof window !== "undefined" &&
+                !window.confirm("Clear all phone connections and reset the room?")
+              ) {
+                return;
+              }
+              clearConnections();
+            }}
+          >
+            Clear connections
+          </button>
+          <button
+            type="button"
+            className="btn-chunky bg-acid"
+            title="Close the room for everyone and return home"
+            onClick={() => {
+              if (
+                typeof window !== "undefined" &&
+                !window.confirm("Close this room for everyone and go home?")
+              ) {
+                return;
+              }
+              closeRoom();
+              router.push("/");
+            }}
+          >
+            Close room
           </button>
         </>
       }

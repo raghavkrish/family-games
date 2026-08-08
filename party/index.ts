@@ -6,6 +6,7 @@ import type {
   ServerMessage,
   TeamId,
 } from "../shared/types";
+import { WS_CLOSE_CLEARED, WS_CLOSE_ROOM } from "../shared/types";
 import { createGameState, reduceGame } from "../shared/games";
 
 function roomCodeFromId(id: string): string {
@@ -344,6 +345,77 @@ export default class Server implements Party.Server {
           gameState: null,
         };
         broadcastState(this.room, this.state);
+        break;
+      }
+      case "clearConnections": {
+        if (sender.id !== this.state.hostConnectionId) {
+          sendError(sender, "Only host can clear connections");
+          return;
+        }
+        const hostId = sender.id;
+        const hostPlayer = this.state.players.find((p) => p.id === hostId) ?? {
+          id: hostId,
+          name: "Host",
+          team: null as TeamId,
+          connected: true,
+          isHost: true,
+        };
+
+        sendEvent(this.room, "connections-cleared", {
+          reason: "Host cleared all controllers",
+        });
+
+        // Drop every non-host socket so phones must re-scan / rejoin.
+        for (const conn of this.room.getConnections()) {
+          if (conn.id === hostId) continue;
+          try {
+            conn.close(WS_CLOSE_CLEARED, "cleared");
+          } catch {
+            // ignore close races
+          }
+        }
+
+        this.state = {
+          code: this.state.code,
+          packId: this.state.packId,
+          players: [{ ...hostPlayer, connected: true, isHost: true, team: null }],
+          scores: {},
+          phase: "lobby",
+          activeGameId: null,
+          gameState: null,
+          hostConnectionId: hostId,
+        };
+        broadcastState(this.room, this.state);
+        break;
+      }
+      case "closeRoom": {
+        if (sender.id !== this.state.hostConnectionId) {
+          sendError(sender, "Only host can close the room");
+          return;
+        }
+
+        sendEvent(this.room, "room-closed", {
+          reason: "Host closed the room",
+        });
+
+        for (const conn of this.room.getConnections()) {
+          try {
+            conn.close(WS_CLOSE_ROOM, "room-closed");
+          } catch {
+            // ignore close races
+          }
+        }
+
+        this.state = {
+          code: this.state.code,
+          packId: this.state.packId,
+          players: [],
+          scores: {},
+          phase: "lobby",
+          activeGameId: null,
+          gameState: null,
+          hostConnectionId: null,
+        };
         break;
       }
       case "gameAction": {

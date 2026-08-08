@@ -10,7 +10,12 @@ import type {
   ServerMessage,
   TeamId,
 } from "@shared/types";
+import { WS_CLOSE_CLEARED, WS_CLOSE_ROOM } from "@shared/types";
 import { motionBus } from "@/lib/motion";
+
+function isForcedClose(code: number) {
+  return code === WS_CLOSE_CLEARED || code === WS_CLOSE_ROOM;
+}
 
 /** Party port only — hostname follows the page so phones on LAN work. */
 function partyPort() {
@@ -75,6 +80,8 @@ export type RoomClient = {
   setPack: (packId: string) => void;
   endGame: () => void;
   backToLobby: () => void;
+  clearConnections: () => void;
+  closeRoom: () => void;
   gameAction: (action: GameAction) => void;
 };
 
@@ -98,8 +105,28 @@ export function useRoom(code: string, role: "host" | "player") {
     const socket = new PartySocket({
       host,
       room: code.toLowerCase(),
+      shouldReconnectOnClose: (event) => !isForcedClose(event.code),
     });
     socketRef.current = socket;
+
+    const clearRoomStorage = () => {
+      if (typeof window === "undefined") return;
+      localStorage.removeItem(`fg-player-${code}`);
+      localStorage.removeItem(`fg-team-${code}`);
+    };
+
+    const forceDisconnectLocal = (message: string, errorCode: string, closeCode: number) => {
+      clearRoomStorage();
+      setLastError({ message, code: errorCode });
+      setState(null);
+      setYou(null);
+      setConnected(false);
+      try {
+        socket.close(closeCode, errorCode);
+      } catch {
+        // ignore
+      }
+    };
 
     const flushPending = () => {
       const queued = pendingRef.current;
@@ -161,6 +188,22 @@ export function useRoom(code: string, role: "host" | "player") {
           if (msg.payload?.scene) {
             motionBus.emit("scene", { cue: msg.payload.scene });
           }
+          if (msg.event === "connections-cleared" && role === "player") {
+            forceDisconnectLocal(
+              String(msg.payload?.reason ?? "Host cleared all controllers") +
+                " — refresh or scan the QR to rejoin.",
+              "connections-cleared",
+              WS_CLOSE_CLEARED,
+            );
+          }
+          if (msg.event === "room-closed") {
+            forceDisconnectLocal(
+              String(msg.payload?.reason ?? "Host closed the room") +
+                (role === "player" ? " — scan a new QR when the host starts again." : ""),
+              "room-closed",
+              WS_CLOSE_ROOM,
+            );
+          }
         } else if (msg.type === "error") {
           setLastError({
             message: msg.message,
@@ -173,7 +216,30 @@ export function useRoom(code: string, role: "host" | "player") {
       }
     };
 
-    const onClose = () => setConnected(false);
+    const onClose = (event: CloseEvent) => {
+      setConnected(false);
+      if (event.code === WS_CLOSE_CLEARED && role === "player") {
+        clearRoomStorage();
+        setLastError({
+          message: "Host cleared all controllers — refresh or scan the QR to rejoin.",
+          code: "connections-cleared",
+        });
+        setState(null);
+        setYou(null);
+      }
+      if (event.code === WS_CLOSE_ROOM) {
+        clearRoomStorage();
+        setLastError({
+          message:
+            role === "player"
+              ? "Room closed — scan a new QR when the host starts again."
+              : "Room closed.",
+          code: "room-closed",
+        });
+        setState(null);
+        setYou(null);
+      }
+    };
     const onError = () => {
       setLastError({
         message: `Can't reach party server at ${host}. Open the site via your computer's Wi‑Fi IP (not localhost).`,
@@ -229,6 +295,8 @@ export function useRoom(code: string, role: "host" | "player") {
       setPack: (packId: string) => send({ type: "setPack", packId }),
       endGame: () => send({ type: "endGame" }),
       backToLobby: () => send({ type: "backToLobby" }),
+      clearConnections: () => send({ type: "clearConnections" }),
+      closeRoom: () => send({ type: "closeRoom" }),
       gameAction: (action: GameAction) =>
         send({ type: "gameAction", action }),
     }),
