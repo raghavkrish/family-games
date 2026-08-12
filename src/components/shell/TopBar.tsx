@@ -22,41 +22,41 @@ export function TopBar() {
   }, [ready, roomCode]);
 
   return (
-    <header className="shell-topbar relative z-20 flex items-center justify-between gap-3 px-4 py-3 md:px-6">
+    <header className="shell-topbar relative z-20 flex items-center justify-between gap-3 px-4 py-4 md:px-6">
       <div>
-        <p className="font-display text-[10px] uppercase tracking-[0.25em] text-acid">
-          Family Games
+        <p className="font-display text-[11px] uppercase tracking-[0.35em] text-acid party-shimmer">
+          Live terrace night
         </p>
         <h1
           ref={brandRef}
-          className="font-display text-2xl leading-none text-cream md:text-4xl"
+          className="font-display text-3xl leading-none text-cream drop-shadow-[3px_3px_0_#ff2a1f] md:text-5xl"
           style={{ transformStyle: "preserve-3d" }}
         >
-          PARTY HUB
+          KOLLYWOOD GAMES NIGHT
         </h1>
       </div>
       <div className="flex items-center gap-2 md:gap-4">
         {packLabel && density !== "landing" && (
-          <span className="hidden rounded-full border-2 border-cream/30 bg-ink/50 px-3 py-1 text-xs text-cream/80 sm:inline">
+          <span className="hidden rounded-full border-2 border-cream/40 bg-ink/60 px-3 py-1.5 text-xs text-cream/90 sm:inline">
             {packLabel}
           </span>
         )}
         {gameLabel && (
-          <span className="rounded-full bg-coral px-3 py-1 font-display text-sm text-ink shadow-[3px_3px_0_#111]">
+          <span className="rounded-full border-2 border-ink bg-coral px-4 py-1.5 font-display text-sm text-ink shadow-[4px_4px_0_#07040a] party-bob">
             {gameLabel}
           </span>
         )}
         {roomCode && (
           <div
             ref={codeRef}
-            className="rounded-xl border-4 border-ink bg-acid px-3 py-1 font-display text-xl tracking-widest text-ink shadow-[4px_4px_0_#ff3d6e] md:text-2xl"
+            className="rounded-2xl border-4 border-ink bg-acid px-4 py-2 font-display text-2xl tracking-[0.2em] text-ink shadow-[6px_6px_0_#ff2a1f] md:text-3xl"
           >
             {roomCode}
           </div>
         )}
         {density !== "landing" && (
           <span
-            className={`h-3 w-3 rounded-full ${connected ? "bg-acid" : "bg-coral animate-pulse"}`}
+            className={`h-3.5 w-3.5 rounded-full border-2 border-ink ${connected ? "bg-acid" : "bg-coral animate-pulse"}`}
             title={connected ? "Connected" : "Reconnecting"}
           />
         )}

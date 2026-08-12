@@ -97,7 +97,7 @@ export function OverlayPortal() {
     <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center">
       <div
         ref={panelRef}
-        className={`${bg} flex flex-col items-center rounded-[2rem] border-8 border-ink px-10 py-8 font-display shadow-[12px_12px_0_#111]`}
+        className={`${bg} flex flex-col items-center rounded-[2rem] border-8 border-ink px-10 py-8 font-display shadow-[12px_12px_0_#07040a]`}
         style={{ transformStyle: "preserve-3d" }}
       >
         {kind === "buzz-lock" && (

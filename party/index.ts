@@ -13,6 +13,18 @@ function roomCodeFromId(id: string): string {
   return id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 6).toUpperCase() || "PARTY1";
 }
 
+/** Skip sockets that already closed (e.g. mid-broadcast disconnect). */
+function safeSend(conn: Party.Connection, data: string) {
+  try {
+    const rs = (conn as { readyState?: number }).readyState;
+    // 1 === OPEN (WebSocket); undefined = assume PartyKit still open
+    if (typeof rs === "number" && rs !== 1) return;
+    conn.send(data);
+  } catch {
+    // Can't call send() after close — ignore
+  }
+}
+
 function broadcastState(room: Party.Room, state: RoomState) {
   for (const conn of room.getConnections()) {
     const player = state.players.find((p) => p.id === conn.id);
@@ -26,7 +38,7 @@ function broadcastState(room: Party.Room, state: RoomState) {
         role,
       },
     };
-    conn.send(JSON.stringify(msg));
+    safeSend(conn, JSON.stringify(msg));
   }
 }
 
@@ -37,7 +49,7 @@ function sendError(
   payload?: Record<string, unknown>,
 ) {
   const msg: ServerMessage = { type: "error", message, code, payload };
-  conn.send(JSON.stringify(msg));
+  safeSend(conn, JSON.stringify(msg));
 }
 
 function teamDisplayName(team: "a" | "b"): string {
@@ -107,7 +119,10 @@ function sendEvent(
   payload?: Record<string, unknown>,
 ) {
   const msg: ServerMessage = { type: "event", event, payload };
-  room.broadcast(JSON.stringify(msg));
+  const data = JSON.stringify(msg);
+  for (const conn of room.getConnections()) {
+    safeSend(conn, data);
+  }
 }
 
 function shuffleTeams(players: Player[]): Player[] {

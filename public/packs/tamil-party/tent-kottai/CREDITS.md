@@ -1,7 +1,8 @@
 # Tent Kottai clue photos
 
-Connexion-style rebus photos (stock), not movie posters or stills.
+Rebus photos live under:
 
-Sources: [Unsplash](https://unsplash.com) — free to use under the Unsplash License.
+- `movies/{slug}/01.jpg` … `06.jpg`
+- `songs/{slug}/01.jpg` … `06.jpg`
 
-Folders map 1:1 to pack puzzle slugs (`enthiran`, `ghilli`, etc.).
+Add credits here when you add assets.

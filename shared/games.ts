@@ -6,10 +6,15 @@ import type {
   GameId,
   Scores,
   SoundPartyState,
+  TentKottaiGameId,
   TentKottaiState,
 } from "./types";
 import { createBuzzerState, reduceBuzzer, shuffleIds } from "./buzzer";
-import { getPack } from "./packs";
+import { getPack, tentSection } from "./packs";
+
+function isTentKottai(gameId: GameId): gameId is TentKottaiGameId {
+  return gameId === "tent-kottai-movies" || gameId === "tent-kottai-songs";
+}
 
 function puzzleTileCount(puzzle?: {
   emojiClues?: string[];
@@ -27,8 +32,8 @@ export function createGameState(
 ): TentKottaiState | SoundPartyState | CharadesState {
   const pack = getPack(packId);
 
-  if (gameId === "tent-kottai") {
-    const ids = shuffleIds(pack.games["tent-kottai"].puzzles.map((p) => p.id));
+  if (isTentKottai(gameId)) {
+    const ids = shuffleIds(tentSection(pack, gameId).puzzles.map((p) => p.id));
     return { gameId, revealedCount: 0, ...createBuzzerState(ids) };
   }
 
@@ -64,10 +69,11 @@ export function reduceGame(
 ): { state: unknown; scores: Scores; event?: string; payload?: Record<string, unknown> } {
   const pack = getPack(ctx.packId);
 
-  if (gameId === "tent-kottai") {
+  if (isTentKottai(gameId)) {
     const s = state as TentKottaiState;
-    const rules = pack.games["tent-kottai"].rules;
-    const puzzles = pack.games["tent-kottai"].puzzles;
+    const section = tentSection(pack, gameId);
+    const rules = section.rules;
+    const puzzles = section.puzzles;
 
     if (action.type === "revealNext") {
       const puzzle = puzzles.find((p) => p.id === s.clueIds[s.clueIndex]);
@@ -107,7 +113,7 @@ export function reduceGame(
       ...result,
       state: {
         ...nextBase,
-        gameId: "tent-kottai" as const,
+        gameId,
         revealedCount,
       },
     };

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import { Flip, stageSoftFade, useGsapReady } from "@/lib/motion";
+import { Flip, phaseWipe, stageSoftFade, useGsapReady } from "@/lib/motion";
 
 export function Stage({ children, stageKey }: { children: ReactNode; stageKey: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -13,6 +13,7 @@ export function Stage({ children, stageKey }: { children: ReactNode; stageKey: s
     if (prevKey.current === stageKey) return;
     prevKey.current = stageKey;
     const inner = ref.current.querySelector(":scope > div") as HTMLElement | null;
+    phaseWipe(inner);
     try {
       const state = Flip.getState(ref.current);
       Flip.from(state, {
@@ -29,13 +30,12 @@ export function Stage({ children, stageKey }: { children: ReactNode; stageKey: s
     } catch {
       stageSoftFade(inner);
     }
-    stageSoftFade(inner);
   }, [stageKey, ready, children]);
 
   return (
     <main
       ref={ref}
-      className="shell-stage relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[2rem] border-4 border-ink bg-stage/80 shadow-[8px_8px_0_#ff3d6e] backdrop-blur-sm"
+      className="shell-stage relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[2.25rem] border-[5px] border-ink bg-stage"
       style={{ perspective: "1200px", transformStyle: "preserve-3d" }}
       data-stage-key={stageKey}
     >

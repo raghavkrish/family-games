@@ -8,7 +8,48 @@ import { teamBuzzerOnline, useRoom } from "@/lib/room/client";
 import { GAMES, getGame } from "@/games";
 import { listPacks } from "@shared/packs";
 import type { GameId } from "@shared/types";
-import { lobbyEnter, teamReadyPop, useGsapReady } from "@/lib/motion";
+import { lobbyEnter, lobbyTilePress, slamIn, teamReadyPop, useGsapReady } from "@/lib/motion";
+
+function HostResults({
+  scores,
+  onBack,
+}: {
+  scores: Record<string, number>;
+  onBack: () => void;
+}) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const ready = useGsapReady();
+
+  useEffect(() => {
+    if (!ready || !rootRef.current) return;
+    slamIn(rootRef.current.querySelector(".results-title"));
+    slamIn(rootRef.current.querySelector(".score-a"), 0.1);
+    slamIn(rootRef.current.querySelector(".score-b"), 0.18);
+  }, [ready]);
+
+  return (
+    <div
+      ref={rootRef}
+      className="flex h-full flex-col items-center justify-center gap-6 text-center"
+      style={{ perspective: "900px" }}
+    >
+      <h2 className="results-title font-display text-6xl text-acid drop-shadow-[4px_4px_0_#07040a] md:text-8xl">
+        Night scores
+      </h2>
+      <div className="flex flex-wrap justify-center gap-5">
+        <div className="score-a rounded-3xl border-[5px] border-ink bg-coral px-8 py-6 font-display text-4xl text-ink shadow-[8px_8px_0_#ffe566] md:text-5xl">
+          Team A {scores["team:a"] ?? 0}
+        </div>
+        <div className="score-b rounded-3xl border-[5px] border-ink bg-cyan px-8 py-6 font-display text-4xl text-ink shadow-[8px_8px_0_#ff2a1f] md:text-5xl">
+          Team B {scores["team:b"] ?? 0}
+        </div>
+      </div>
+      <button type="button" className="btn-chunky bg-acid px-8 py-4 text-xl" onClick={onBack}>
+        Back to games
+      </button>
+    </div>
+  );
+}
 
 function HostLobby({
   joinUrl,
@@ -52,11 +93,17 @@ function HostLobby({
   }, [teamBReady]);
 
   return (
-    <div ref={rootRef} className="grid h-full gap-6 lg:grid-cols-[1.1fr_1fr]">
-      <div className="lobby-qr flex flex-col items-center justify-center gap-4 rounded-3xl border-4 border-ink bg-cream p-6 text-ink shadow-[8px_8px_0_#ff3d6e]">
-        <p className="font-display text-sm uppercase tracking-widest">Scan to join a team</p>
-        <QRCodeSVG value={joinUrl} size={220} bgColor="transparent" fgColor="#0b0a12" />
-        <p className="font-display text-4xl tracking-widest">{roomCode}</p>
+    <div ref={rootRef} className="grid h-full gap-6 lg:grid-cols-[1.15fr_1fr]">
+      <div className="lobby-qr flex flex-col items-center justify-center gap-4 rounded-[2rem] border-[5px] border-ink bg-paper p-6 text-ink shadow-[10px_10px_0_#ff2a1f,0_0_40px_rgba(255,229,102,0.25)] md:p-8">
+        <p className="font-display text-sm uppercase tracking-[0.25em] text-ink/70 party-shimmer">
+          Scan to join a team
+        </p>
+        <div className="rounded-3xl border-4 border-ink bg-cream p-3 shadow-[4px_4px_0_#00f5d4]">
+          <QRCodeSVG value={joinUrl} size={240} bgColor="transparent" fgColor="#07040a" />
+        </div>
+        <p className="lobby-code font-display text-6xl tracking-[0.22em] text-ink drop-shadow-[3px_3px_0_#ffe566] md:text-7xl">
+          {roomCode}
+        </p>
         <p className="text-center text-sm text-ink/70 break-all">{joinUrl}</p>
         {onLocalhost && (
           <p className="rounded-xl bg-coral/20 px-3 py-2 text-left text-xs text-ink">
@@ -73,8 +120,8 @@ function HostLobby({
         <div className="mt-2 flex w-full gap-3">
           <div
             ref={teamARef}
-            className={`lobby-team flex-1 rounded-2xl border-4 border-ink px-3 py-3 text-center font-display ${
-              teamAReady ? "bg-coral" : "bg-ink/10 text-ink/40"
+            className={`lobby-team flex-1 rounded-2xl border-4 border-ink px-3 py-4 text-center font-display text-xl ${
+              teamAReady ? "bg-coral shadow-[4px_4px_0_#ffe566]" : "bg-ink/10 text-ink/40"
             }`}
           >
             Team A
@@ -82,8 +129,8 @@ function HostLobby({
           </div>
           <div
             ref={teamBRef}
-            className={`lobby-team flex-1 rounded-2xl border-4 border-ink px-3 py-3 text-center font-display ${
-              teamBReady ? "bg-cyan" : "bg-ink/10 text-ink/40"
+            className={`lobby-team flex-1 rounded-2xl border-4 border-ink px-3 py-4 text-center font-display text-xl ${
+              teamBReady ? "bg-cyan shadow-[4px_4px_0_#ff2a1f]" : "bg-ink/10 text-ink/40"
             }`}
           >
             Team B
@@ -93,8 +140,10 @@ function HostLobby({
       </div>
       <div className="flex flex-col gap-4">
         <div>
-          <h2 className="lobby-title font-display text-4xl text-cream">Pick a game</h2>
-          <p className="text-cream/60">Wait for both buzzers, then smash a title.</p>
+          <h2 className="lobby-title font-display text-5xl text-cream md:text-6xl">
+            Pick a game
+          </h2>
+          <p className="text-lg text-cream/75">Both buzzers ready? Smash a title.</p>
         </div>
         <label className="text-sm text-cream/70">
           Content pack
@@ -110,16 +159,20 @@ function HostLobby({
             ))}
           </select>
         </label>
-        <div className="grid gap-3">
+        <div className="grid gap-4">
           {GAMES.map((g) => (
             <button
               key={g.id}
               type="button"
-              className={`lobby-game rounded-3xl border-4 border-ink p-4 text-left shadow-[6px_6px_0_#111] ${g.accent}`}
-              onClick={() => pickGame(g.id)}
+              className={`lobby-game rounded-3xl border-[5px] border-ink p-5 text-left shadow-[8px_8px_0_#07040a] transition hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[5px_5px_0_#07040a] active:translate-x-1 active:translate-y-1 active:shadow-[2px_2px_0_#07040a] ${g.accent}`}
+              style={{ transformStyle: "preserve-3d" }}
+              onClick={(e) => {
+                lobbyTilePress(e.currentTarget);
+                pickGame(g.id);
+              }}
             >
-              <p className="font-display text-2xl text-ink">{g.title}</p>
-              <p className="text-ink/75">{g.blurb}</p>
+              <p className="font-display text-3xl text-ink md:text-4xl">{g.title}</p>
+              <p className="mt-1 text-base text-ink/80">{g.blurb}</p>
             </button>
           ))}
         </div>
@@ -184,22 +237,7 @@ export default function HostPage({ params }: { params: Promise<{ code: string }>
     }
 
     if (state.phase === "results") {
-      return (
-        <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-          <h2 className="font-display text-6xl text-acid">Night scores</h2>
-          <div className="flex gap-4">
-            <div className="rounded-2xl bg-coral px-6 py-4 font-display text-3xl text-ink">
-              Team A {state.scores["team:a"] ?? 0}
-            </div>
-            <div className="rounded-2xl bg-cyan px-6 py-4 font-display text-3xl text-ink">
-              Team B {state.scores["team:b"] ?? 0}
-            </div>
-          </div>
-          <button type="button" className="btn-chunky bg-acid" onClick={endGame}>
-            Back to games
-          </button>
-        </div>
-      );
+      return <HostResults scores={state.scores} onBack={endGame} />;
     }
 
     if (active && state.gameState) {

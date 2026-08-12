@@ -12,7 +12,13 @@ export type Player = {
 
 export type Scores = Record<string, number>; // playerId or team:a / team:b
 
-export type GameId = "tent-kottai" | "sound-party" | "tamil-charades";
+export type GameId =
+  | "tent-kottai-movies"
+  | "tent-kottai-songs"
+  | "sound-party"
+  | "tamil-charades";
+
+export type TentKottaiGameId = "tent-kottai-movies" | "tent-kottai-songs";
 
 export type RoomState = {
   code: string;
@@ -82,7 +88,7 @@ export type BuzzerRoundState = {
 };
 
 export type TentKottaiState = BuzzerRoundState & {
-  gameId: "tent-kottai";
+  gameId: TentKottaiGameId;
   revealedCount: number;
 };
 

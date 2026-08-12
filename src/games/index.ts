@@ -23,9 +23,19 @@ export type GameModule = {
 
 export const GAMES: GameModule[] = [
   {
-    id: "tent-kottai",
-    title: "Tent Kottai",
-    blurb: "Picture connexions. Buzz first, guess wild.",
+    id: "tent-kottai-movies",
+    title: "Tent Kottai · Movies",
+    blurb: "Picture connexions — Tamil films. Buzz first, guess wild.",
+    accent: "bg-cyan",
+    minPlayers: 2,
+    maxPlayers: 12,
+    HostView: TentKottaiHost,
+    PlayerView: TentKottaiPlayer,
+  },
+  {
+    id: "tent-kottai-songs",
+    title: "Tent Kottai · Songs",
+    blurb: "Picture connexions — Tamil songs. Buzz first, guess wild.",
     accent: "bg-cyan",
     minPlayers: 2,
     maxPlayers: 12,

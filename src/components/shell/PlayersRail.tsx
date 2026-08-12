@@ -37,7 +37,7 @@ export function PlayersRail() {
           return (
             <div
               key={p.id}
-              className={`player-chip flex items-center gap-2 rounded-2xl border-2 border-ink px-2 py-1.5 shadow-[3px_3px_0_#111] ${teamColor} ${
+              className={`player-chip flex items-center gap-2 rounded-2xl border-2 border-ink px-2 py-1.5 shadow-[3px_3px_0_#07040a] ${teamColor} ${
                 density === "play" ? "min-w-[7rem]" : ""
               } ${p.connected ? "" : "opacity-40"}`}
               style={{ transformStyle: "preserve-3d" }}

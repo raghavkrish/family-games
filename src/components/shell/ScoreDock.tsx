@@ -34,14 +34,14 @@ export function ScoreDock({ children }: { children?: ReactNode }) {
   return (
     <footer
       ref={dockRef}
-      className="shell-dock relative z-20 flex flex-wrap items-center justify-between gap-3 border-t-4 border-ink bg-ink/80 px-4 py-3 text-cream"
+      className="shell-dock relative z-20 flex flex-wrap items-center justify-between gap-3 border-t-[5px] border-ink bg-ink/90 px-4 py-4 text-cream"
     >
-      <div className="flex items-center gap-4">
-        <div className="rounded-xl bg-coral px-3 py-1 font-display text-ink shadow-[3px_3px_0_#00f0ff]">
-          Team A <span ref={aRef}>{teamA}</span>
+      <div className="flex items-center gap-3 md:gap-4">
+        <div className="rounded-2xl border-[3px] border-ink bg-coral px-4 py-2 font-display text-lg text-ink shadow-[4px_4px_0_#ffe566]">
+          Team A <span ref={aRef} className="text-2xl">{teamA}</span>
         </div>
-        <div className="rounded-xl bg-cyan px-3 py-1 font-display text-ink shadow-[3px_3px_0_#ff3d6e]">
-          Team B <span ref={bRef}>{teamB}</span>
+        <div className="rounded-2xl border-[3px] border-ink bg-cyan px-4 py-2 font-display text-lg text-ink shadow-[4px_4px_0_#ff2a1f]">
+          Team B <span ref={bRef} className="text-2xl">{teamB}</span>
         </div>
         <p className="hidden text-xs text-cream/60 sm:block">
           {players.filter((p) => p.connected && !p.isHost).length} players online

@@ -68,18 +68,18 @@ function PlayInner({ roomCode }: { roomCode: string }) {
       return (
         <div
           ref={pickerRef}
-          className="flex h-full flex-col items-center justify-center gap-6 text-center"
+          className="flex h-full flex-col items-center justify-center gap-6 px-1 text-center"
         >
-          <h2 className="pick-title font-display text-4xl text-cream md:text-5xl">
+          <h2 className="pick-title font-display text-5xl text-cream md:text-6xl">
             Pick your team
           </h2>
-          <p className="max-w-xs text-cream/70">
+          <p className="max-w-xs text-lg text-cream/80">
             This phone becomes that team’s buzzer for the night.
           </p>
           <div className="grid w-full max-w-sm gap-4">
             <button
               type="button"
-              className="team-a btn-chunky bg-coral py-6 text-2xl"
+              className="team-a btn-chunky bg-coral py-10 text-4xl"
               style={{ transformStyle: "preserve-3d" }}
               onClick={() => {
                 clearError();
@@ -90,7 +90,7 @@ function PlayInner({ roomCode }: { roomCode: string }) {
             </button>
             <button
               type="button"
-              className="team-b btn-chunky bg-cyan py-6 text-2xl"
+              className="team-b btn-chunky bg-cyan py-10 text-4xl"
               style={{ transformStyle: "preserve-3d" }}
               onClick={() => {
                 clearError();
@@ -103,14 +103,14 @@ function PlayInner({ roomCode }: { roomCode: string }) {
           {lastError?.code === "team-taken" && pendingTeam && (
             <div
               ref={takeoverRef}
-              className="mt-2 rounded-2xl border-4 border-ink bg-acid p-4 text-ink shadow-[4px_4px_0_#111]"
+              className="mt-2 w-full max-w-sm rounded-2xl border-4 border-ink bg-acid p-4 text-ink shadow-[4px_4px_0_#07040a]"
             >
               <p className="font-display text-lg">
                 Team {pendingTeam.toUpperCase()} already has a buzzer
               </p>
               <button
                 type="button"
-                className="btn-chunky mt-3 bg-coral"
+                className="btn-chunky mt-3 w-full bg-coral py-3"
                 onClick={() => {
                   joinTeam(pendingTeam, true);
                   clearError();
@@ -130,16 +130,22 @@ function PlayInner({ roomCode }: { roomCode: string }) {
 
     if (state.phase === "lobby" || state.phase === "pickGame") {
       return (
-        <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+        <div
+          className={`flex h-full flex-col items-center justify-center gap-4 -m-4 rounded-[1.5rem] p-6 text-center md:-m-6 ${
+            me.team === "a" ? "team-mood-a" : "team-mood-b"
+          }`}
+        >
           <p
-            className={`rounded-full border-4 border-ink px-5 py-2 font-display text-2xl text-ink shadow-[4px_4px_0_#111] ${
+            className={`rounded-full border-4 border-ink px-6 py-3 font-display text-2xl text-ink shadow-[4px_4px_0_#07040a] ${
               me.team === "a" ? "bg-coral" : "bg-cyan"
             }`}
           >
-            {me.name} Buzzer
+            {me.name}
           </p>
-          <p className="text-cream/70">You’re locked in — wait for the host.</p>
-          <p className="text-sm text-cream/50">Keep this phone ready to BUZZ.</p>
+          <p className="font-display text-xl text-cream">You’re locked in</p>
+          <p className="max-w-xs text-cream/75">
+            Keep this phone unlocked — the giant BUZZ button lands when the host starts a game.
+          </p>
         </div>
       );
     }

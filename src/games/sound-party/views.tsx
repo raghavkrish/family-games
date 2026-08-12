@@ -4,9 +4,18 @@ import { useEffect, useRef, useState } from "react";
 import type { GameViewProps } from "@/games";
 import type { SoundPartyState } from "@shared/types";
 import { getPack } from "@shared/packs";
-import { BuzzButton, HostJudgeBar } from "@/components/buzzer/BuzzControls";
+import { AnswerForm, BuzzButton, HostJudgeBar, PhoneBuzzerStage } from "@/components/buzzer/BuzzControls";
 import { HostBuzzTakeover } from "@/components/buzzer/HostBuzzTakeover";
-import { discGroove, motionBus, stampIn, useGsapReady } from "@/lib/motion";
+import {
+  confettiBurst,
+  discGroove,
+  gsap,
+  motionBus,
+  prefersReducedMotion,
+  stampIn,
+  wrongPunch,
+  useGsapReady,
+} from "@/lib/motion";
 
 export function SoundPartyHost({ room, onAction }: GameViewProps) {
   const state = room.gameState as SoundPartyState;
@@ -17,7 +26,9 @@ export function SoundPartyHost({ room, onAction }: GameViewProps) {
   const locked = room.players.find((p) => p.id === state.lockedBy);
   const audioRef = useRef<HTMLAudioElement>(null);
   const discRef = useRef<HTMLDivElement>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
   const answerRef = useRef<HTMLDivElement>(null);
+  const listenRef = useRef<HTMLParagraphElement>(null);
   const ready = useGsapReady();
   const grooveRef = useRef<ReturnType<typeof discGroove>>(null);
 
@@ -48,33 +59,70 @@ export function SoundPartyHost({ room, onAction }: GameViewProps) {
   }, [state.mode, state.clueIndex, state.audioPlaying, track, ready]);
 
   useEffect(() => {
-    if (!ready || state.mode !== "reveal" || state.lastResult !== "correct") return;
-    stampIn(answerRef.current);
+    if (!ready || state.mode !== "reveal" || !state.lastResult) return;
+    if (state.lastResult === "correct") {
+      stampIn(answerRef.current);
+      confettiBurst(boardRef.current, 32);
+    } else {
+      wrongPunch(answerRef.current);
+    }
   }, [ready, state.mode, state.lastResult, state.clueIndex]);
 
+  useEffect(() => {
+    if (!ready || !listenRef.current || state.mode !== "open") return;
+    if (prefersReducedMotion()) return;
+    const tween = gsap.to(listenRef.current, {
+      opacity: 0.55,
+      duration: 0.55,
+      yoyo: true,
+      repeat: -1,
+      ease: "sine.inOut",
+    });
+    return () => {
+      tween.kill();
+      if (listenRef.current) gsap.set(listenRef.current, { opacity: 1 });
+    };
+  }, [ready, state.mode, state.clueIndex]);
+
   return (
-    <div className="relative flex h-full flex-col items-center justify-center gap-6">
+    <div
+      ref={boardRef}
+      className="relative flex h-full flex-col items-center justify-center gap-6"
+    >
       {state.mode === "locked" && <HostBuzzTakeover lockedPlayer={locked} />}
-      <p className="font-display text-sm uppercase tracking-widest text-coral">Sound Party</p>
+      <p className="font-display text-sm uppercase tracking-widest text-coral">
+        Sound Party
+      </p>
       <div
         ref={discRef}
-        className="relative flex h-48 w-48 items-center justify-center rounded-full border-8 border-ink bg-gradient-to-br from-ink to-coral shadow-[0_0_0_8px_#ffc700,8px_8px_0_#00f0ff] md:h-64 md:w-64"
+        className="relative flex h-52 w-52 items-center justify-center rounded-full border-[10px] border-ink bg-gradient-to-br from-ink via-coral to-acid shadow-[0_0_0_10px_#ffe566,10px_10px_0_#00f5d4,0_0_50px_rgba(255,229,102,0.35)] md:h-72 md:w-72"
       >
-        <div className="h-16 w-16 rounded-full border-4 border-ink bg-acid" />
-        <div className="absolute inset-6 rounded-full border border-cream/20" />
+        <div className="h-20 w-20 rounded-full border-4 border-ink bg-acid shadow-[inset_0_0_20px_rgba(0,0,0,0.35)]" />
+        <div className="absolute inset-7 rounded-full border-2 border-cream/25" />
+        <div className="absolute inset-12 rounded-full border border-cream/15" />
       </div>
       <audio ref={audioRef} src={track?.audioUrl} preload="auto" />
-      <p className="text-cream/70">
-        Clue {state.clueIndex + 1}/{state.clueIds.length}
+      <p ref={listenRef} className="font-display text-lg text-cream/80">
+        {state.mode === "open"
+          ? "♪ Listening…"
+          : `Clue ${state.clueIndex + 1}/${state.clueIds.length}`}
       </p>
-      {state.mode === "reveal" && state.lastResult === "correct" && (
+      {state.mode === "reveal" && (
         <div ref={answerRef} className="text-center">
-          <p className="font-display text-4xl text-acid">{track?.title}</p>
-          {track?.movie && <p className="text-cream/70">{track.movie}</p>}
+          <p
+            className={`font-display text-5xl md:text-6xl ${
+              state.lastResult === "correct" ? "text-acid" : "text-coral"
+            }`}
+          >
+            {state.lastResult === "wrong" ? "Wrong — " : ""}
+            {track?.title}
+          </p>
+          {track?.movie && <p className="mt-1 text-lg text-cream/70">{track.movie}</p>}
         </div>
       )}
       <HostJudgeBar
         mode={state.mode}
+        lastResult={state.lastResult}
         lockedByName={locked?.name}
         lockedTeam={locked?.team ?? null}
         submittedAnswer={state.submittedAnswer}
@@ -93,46 +141,34 @@ export function SoundPartyPlayer({ room, playerId, onAction }: GameViewProps) {
   const locked = room.players.find((p) => p.id === state.lockedBy);
   const isLockedByMe = state.lockedBy === playerId;
 
+  const status =
+    state.mode === "open"
+      ? "TAP TO BUZZ — name that tune"
+      : state.mode === "locked" && isLockedByMe
+        ? "You’re in — type the song"
+        : state.mode === "locked"
+          ? `${locked?.name ?? "Other team"} buzzed — wait`
+          : state.mode === "reveal"
+            ? "Watch the TV"
+            : "Wait for the next track";
+
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4">
-      <p className="font-display text-xl text-cream">Sound Party</p>
-      <p
-        className={`rounded-full border-2 border-ink px-3 py-1 font-display text-sm text-ink ${
-          me?.team === "a" ? "bg-coral" : "bg-cyan"
-        }`}
-      >
-        {me?.name ?? "Team"} Buzzer
-      </p>
-      {state.mode === "locked" && !isLockedByMe && (
-        <p className="text-cream/70">
-          {locked?.name ?? "Other team"} buzzed — wait up
-        </p>
-      )}
+    <PhoneBuzzerStage team={me?.team ?? null} title="Sound Party" status={status}>
       <BuzzButton
-        disabled={state.mode !== "open"}
+        phase={state.mode}
+        lockedByMe={isLockedByMe}
         onBuzz={() => onAction({ type: "buzz", playerId: playerId! })}
       />
       {isLockedByMe && (
-        <form
-          className="flex w-full max-w-sm gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
+        <AnswerForm
+          value={answer}
+          onChange={setAnswer}
+          onSubmit={() => {
             onAction({ type: "submitAnswer", playerId: playerId!, answer });
             setAnswer("");
           }}
-        >
-          <input
-            className="input-chunky flex-1"
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Song name…"
-            autoFocus
-          />
-          <button type="submit" className="btn-chunky bg-acid">
-            Send
-          </button>
-        </form>
+        />
       )}
-    </div>
+    </PhoneBuzzerStage>
   );
 }

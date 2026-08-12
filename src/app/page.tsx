@@ -34,36 +34,50 @@ export default function HomePage() {
       stage={
         <div
           ref={heroRef}
-          className="relative mx-auto w-full max-w-5xl overflow-x-clip"
+          className="relative mx-auto flex min-h-[74dvh] w-full max-w-6xl flex-col justify-center overflow-x-clip"
+          style={{ perspective: "900px" }}
         >
-          {/* Side gutters only — stickers cannot sit over the content column */}
           <div
-            className="sticker-rail pointer-events-none absolute inset-y-0 left-0 z-[1] hidden w-[4.75rem] md:block lg:w-24"
+            className="lamp-glow pointer-events-none absolute left-1/2 top-[-10%] z-0 h-64 w-64 -translate-x-1/2 rounded-full bg-acid/40 blur-3xl md:h-[22rem] md:w-[22rem]"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_50%_20%,rgba(255,42,31,0.28),transparent_55%)]"
+            aria-hidden
+          />
+
+          <div
+            className="sticker-rail pointer-events-none absolute inset-y-0 left-0 z-[1] hidden w-[5.5rem] md:block lg:w-28"
             data-sticker-rail
             aria-hidden
           >
-            <span className="drag-sticker pointer-events-auto absolute left-1 top-3 rotate-[-12deg] cursor-grab rounded-full border-4 border-ink bg-acid px-2.5 py-1 font-display text-xs text-ink shadow-[3px_3px_0_#111] active:cursor-grabbing lg:left-2 lg:top-5 lg:px-3 lg:text-sm">
+            <span className="drag-sticker pointer-events-auto absolute left-1 top-3 rotate-[-14deg] cursor-grab rounded-full border-4 border-ink bg-acid px-3 py-1.5 font-display text-sm text-ink shadow-[4px_4px_0_#07040a] active:cursor-grabbing lg:left-2 lg:top-6 lg:text-base">
               BUZZ
+            </span>
+            <span className="drag-sticker pointer-events-auto absolute left-2 bottom-24 rotate-[10deg] cursor-grab rounded-full border-4 border-ink bg-coral px-3 py-1.5 font-display text-sm text-ink shadow-[4px_4px_0_#07040a] active:cursor-grabbing">
+              TV
             </span>
           </div>
           <div
-            className="sticker-rail pointer-events-none absolute inset-y-0 right-0 z-[1] hidden w-[5.5rem] md:block lg:w-28"
+            className="sticker-rail pointer-events-none absolute inset-y-0 right-0 z-[1] hidden w-[6rem] md:block lg:w-32"
             data-sticker-rail
             aria-hidden
           >
-            <span className="drag-sticker pointer-events-auto absolute right-1 top-12 rotate-[8deg] cursor-grab rounded-full border-4 border-ink bg-coral px-2.5 py-1 font-display text-xs text-ink shadow-[3px_3px_0_#111] active:cursor-grabbing lg:right-2 lg:top-16 lg:px-3 lg:text-sm">
-              CONNEXION
+            <span className="drag-sticker pointer-events-auto absolute right-1 top-10 rotate-[9deg] cursor-grab rounded-full border-4 border-ink bg-coral px-3 py-1.5 font-display text-sm text-ink shadow-[4px_4px_0_#07040a] active:cursor-grabbing lg:right-2 lg:top-14 lg:text-base">
+              TERRACE
             </span>
-            <span className="drag-sticker pointer-events-auto absolute bottom-10 right-1 rotate-[6deg] cursor-grab rounded-full border-4 border-ink bg-cyan px-2.5 py-1 font-display text-xs text-ink shadow-[3px_3px_0_#111] active:cursor-grabbing lg:bottom-14 lg:right-2 lg:px-3 lg:text-sm">
+            <span className="drag-sticker pointer-events-auto absolute bottom-16 right-1 rotate-[7deg] cursor-grab rounded-full border-4 border-ink bg-cyan px-3 py-1.5 font-display text-sm text-ink shadow-[4px_4px_0_#07040a] active:cursor-grabbing lg:bottom-20 lg:right-2 lg:text-base">
               KOLLYWOOD
+            </span>
+            <span className="drag-sticker pointer-events-auto absolute right-2 top-1/2 -translate-y-1/2 rotate-[-8deg] cursor-grab rounded-full border-4 border-ink bg-acid px-3 py-1.5 font-display text-sm text-ink shadow-[4px_4px_0_#07040a] active:cursor-grabbing">
+              PARTY
             </span>
           </div>
 
-          {/* Content column sits above stickers and owns all hit targets */}
-          <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 md:px-6">
-            <div className="hero-copy text-center">
+          <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-col items-center gap-10 px-4 text-center md:px-6">
+            <div className="hero-copy">
               <svg
-                className="mx-auto mb-3 h-16 w-16"
+                className="mx-auto mb-5 h-16 w-16 md:h-20 md:w-20"
                 viewBox="0 0 64 64"
                 fill="none"
                 aria-hidden
@@ -71,74 +85,58 @@ export default function HomePage() {
                 <path
                   className="logo-stroke"
                   d="M8 40 L32 8 L56 40 L48 40 L48 56 L16 56 L16 40 Z"
-                  stroke="#ffc700"
+                  stroke="#ffe566"
                   strokeWidth="4"
                   strokeLinejoin="round"
                 />
               </svg>
-              <p className="mb-2 font-display text-sm uppercase tracking-[0.3em] text-acid">
-                Indoor night · 2 team buzzers · phones + TV
-              </p>
-              <h2 className="hero-title font-display text-5xl leading-none text-cream md:text-7xl">
-                TAMIL PARTY
-                <span className="block text-coral">GAME NIGHT</span>
-              </h2>
-              <p className="mx-auto mt-4 max-w-xl text-cream/75">
-                Tent Kottai, Sound Party, Cinema Charades — one funky hub, wild GSAP energy, your
-                living room as the stage.
+              <h1
+                className="hero-title font-display text-6xl leading-[0.88] text-cream drop-shadow-[4px_4px_0_#ff2a1f] md:text-8xl lg:text-9xl"
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                KOLLYWOOD
+                <span className="block text-acid drop-shadow-[4px_4px_0_#07040a]">GAMES</span>
+                <span className="block text-coral drop-shadow-[4px_4px_0_#07040a]">NIGHT</span>
+              </h1>
+              <p className="hero-sub mx-auto mt-5 max-w-lg text-lg text-cream/85 md:text-xl">
+                Phones as buzzers. TV as the stage. Tent Kottai, Sound Party, Charades.
               </p>
             </div>
 
-            <div className="hero-actions grid gap-4 md:grid-cols-2">
-              <div className="hero-card rounded-3xl border-4 border-ink bg-coral p-5 shadow-[8px_8px_0_#111]">
-                <h3 className="font-display text-2xl text-ink">Host on the TV</h3>
-                <p className="mt-2 text-ink/80">Create a room, flaunt the QR, run the night.</p>
-                <button type="button" className="btn-chunky mt-4 bg-acid" onClick={host}>
-                  Create room
+            <div className="hero-actions flex w-full flex-col gap-4 sm:flex-row sm:justify-center">
+              <button
+                type="button"
+                className="hero-cta btn-chunky bg-coral px-10 py-5 text-2xl text-ink md:text-3xl"
+                onClick={host}
+              >
+                Host on TV
+              </button>
+              <div className="hero-cta flex flex-1 gap-2 sm:max-w-md">
+                <input
+                  className="input-chunky min-w-0 flex-1 py-4 text-center text-xl uppercase tracking-widest"
+                  placeholder="CODE"
+                  value={joinCode}
+                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                  maxLength={6}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") join();
+                  }}
+                />
+                <button
+                  type="button"
+                  className="btn-chunky bg-cyan px-6 py-4 text-xl text-ink"
+                  onClick={join}
+                >
+                  Join
                 </button>
               </div>
-              <div className="hero-card rounded-3xl border-4 border-ink bg-cyan p-5 shadow-[8px_8px_0_#111]">
-                <h3 className="font-display text-2xl text-ink">Join on your phone</h3>
-                <p className="mt-1 text-sm text-ink/70">
-                  Then pick Team A or Team B as your buzzer.
-                </p>
-                <div className="mt-3 flex flex-col gap-2">
-                  <input
-                    className="input-chunky uppercase tracking-widest"
-                    placeholder="ROOM CODE"
-                    value={joinCode}
-                    onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                    maxLength={6}
-                  />
-                  <button type="button" className="btn-chunky bg-acid" onClick={join}>
-                    Join party
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="how-block grid gap-3 md:grid-cols-3">
-              {[
-                ["01", "Open Tent Kottai", "Picture connexions + buzzers"],
-                ["02", "Blast Sound Party", "Tamil clips, name that song"],
-                ["03", "Cinema Charades", "Act out Kollywood classics"],
-              ].map(([n, t, d]) => (
-                <div
-                  key={n}
-                  className="how-step rounded-2xl border-2 border-cream/20 bg-stage/60 p-4"
-                >
-                  <p className="font-display text-acid">{n}</p>
-                  <p className="font-display text-xl text-cream">{t}</p>
-                  <p className="text-sm text-cream/60">{d}</p>
-                </div>
-              ))}
             </div>
           </div>
         </div>
       }
       dock={
         <p className="text-center text-xs text-cream/50">
-          Drop your own Tamil clips into the content pack — sample audio is a placeholder beep.
+          Two teams · one room code · keep phones unlocked
         </p>
       }
     />

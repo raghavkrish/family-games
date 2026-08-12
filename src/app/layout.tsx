@@ -14,8 +14,8 @@ const body = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "Family Games Party Hub",
-  description: "Big-screen Tamil party games with phone controllers",
+  title: "Kollywood Games Night",
+  description: "TV + phone buzzers for a Chennai terrace Kollywood games night",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

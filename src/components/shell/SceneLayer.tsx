@@ -22,7 +22,11 @@ export function SceneLayer() {
       const id = String(p?.gameId ?? "");
       if (id === "sound-party") playSceneCue("vinyl-spin");
       else if (id === "tamil-charades") playSceneCue("reel-spin");
-      else if (id === "tent-kottai") playSceneCue("tent-pop");
+      else if (
+        id === "tent-kottai-movies" ||
+        id === "tent-kottai-songs"
+      )
+        playSceneCue("tent-pop");
     });
     return () => {
       off();

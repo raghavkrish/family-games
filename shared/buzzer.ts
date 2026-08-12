@@ -112,27 +112,16 @@ export function reduceBuzzer(
       const correct = action.correct || auto;
       if (correct) {
         scores = award(scores, ctx.players, state.lockedBy, pointsCorrect);
-        return {
-          state: {
-            ...state,
-            mode: "reveal",
-            lastResult: "correct",
-          },
-          scores,
-          event: "correct",
-          payload: { playerId: state.lockedBy },
-        };
       }
+      // One buzz per clue — no second-chance for the other team.
       return {
         state: {
           ...state,
-          mode: "open",
-          lockedBy: null,
-          submittedAnswer: null,
-          lastResult: "wrong",
+          mode: "reveal",
+          lastResult: correct ? "correct" : "wrong",
         },
         scores,
-        event: "wrong",
+        event: correct ? "correct" : "wrong",
         payload: { playerId: state.lockedBy },
       };
     }
