@@ -64,6 +64,7 @@ export type GameAction =
   | { type: "buzz"; playerId: string }
   | { type: "submitAnswer"; playerId: string; answer: string }
   | { type: "judge"; correct: boolean }
+  | { type: "pass" }
   | { type: "nextRound" }
   | { type: "startRound" }
   | { type: "revealNext" }
@@ -84,7 +85,7 @@ export type BuzzerRoundState = {
   clueIds: string[];
   lockedBy: string | null;
   submittedAnswer: string | null;
-  lastResult: "correct" | "wrong" | null;
+  lastResult: "correct" | "wrong" | "pass" | null;
 };
 
 export type TentKottaiState = BuzzerRoundState & {

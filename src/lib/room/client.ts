@@ -129,6 +129,7 @@ export function useRoom(code: string, role: "host" | "player") {
       if (typeof window === "undefined") return;
       localStorage.removeItem(`fg-player-${code}`);
       localStorage.removeItem(`fg-team-${code}`);
+      localStorage.removeItem(`fg-host-${code}`);
     };
 
     const forceDisconnectLocal = (message: string, errorCode: string, closeCode: number) => {
@@ -155,16 +156,17 @@ export function useRoom(code: string, role: "host" | "player") {
     const onOpen = () => {
       setConnected(true);
       setLastError(null);
+      const storedId =
+        typeof window !== "undefined"
+          ? role === "host"
+            ? (localStorage.getItem(`fg-host-${code}`) ?? undefined)
+            : (localStorage.getItem(`fg-player-${code}`) ?? undefined)
+          : undefined;
       const hello: ClientMessage = {
         type: "hello",
         role,
         name: role === "host" ? "Host" : "Controller",
-        playerId:
-          role === "player"
-            ? (typeof window !== "undefined"
-                ? localStorage.getItem(`fg-player-${code}`) ?? undefined
-                : undefined)
-            : undefined,
+        playerId: storedId,
       };
       socket.send(JSON.stringify(hello));
       flushPending();
@@ -176,6 +178,9 @@ export function useRoom(code: string, role: "host" | "player") {
         if (msg.type === "state") {
           setState(msg.state);
           setYou(msg.you);
+          if (msg.you.playerId && role === "host") {
+            localStorage.setItem(`fg-host-${code}`, msg.you.playerId);
+          }
           if (msg.you.playerId && role === "player") {
             localStorage.setItem(`fg-player-${code}`, msg.you.playerId);
             const me = msg.state.players.find((p) => p.id === msg.you.playerId);

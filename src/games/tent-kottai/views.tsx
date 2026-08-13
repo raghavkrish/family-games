@@ -191,7 +191,11 @@ export function TentKottaiHost({ room, onAction }: GameViewProps) {
             state.lastResult === "correct" ? "text-acid" : "text-coral"
           }`}
         >
-          {state.lastResult === "wrong" ? "Wrong — " : ""}
+          {state.lastResult === "wrong"
+            ? "Wrong — "
+            : state.lastResult === "pass"
+              ? "Pass — "
+              : ""}
           {puzzle?.answer}
         </p>
       )}
@@ -215,6 +219,7 @@ export function TentKottaiHost({ room, onAction }: GameViewProps) {
           submittedAnswer={state.submittedAnswer}
           onCorrect={() => onAction({ type: "judge", correct: true })}
           onWrong={() => onAction({ type: "judge", correct: false })}
+          onPass={() => onAction({ type: "pass" })}
           onNext={() => onAction({ type: "nextRound" })}
         />
       </div>

@@ -31,32 +31,75 @@ export function SoundPartyHost({ room, onAction }: GameViewProps) {
   const listenRef = useRef<HTMLParagraphElement>(null);
   const ready = useGsapReady();
   const grooveRef = useRef<ReturnType<typeof discGroove>>(null);
+  const [playing, setPlaying] = useState(false);
+
+  const stopGroove = () => {
+    grooveRef.current?.kill();
+    grooveRef.current = null;
+  };
+
+  const startGroove = () => {
+    if (!ready) return;
+    stopGroove();
+    grooveRef.current = discGroove(discRef.current);
+  };
+
+  const pauseClip = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.pause();
+    setPlaying(false);
+    stopGroove();
+  };
+
+  const playClip = (fromStart = false) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (fromStart) audio.currentTime = 0;
+    void audio
+      .play()
+      .then(() => {
+        setPlaying(true);
+        startGroove();
+      })
+      .catch(() => {
+        setPlaying(false);
+        stopGroove();
+      });
+  };
 
   useEffect(() => {
     motionBus.emit("scene", { cue: "vinyl-spin" });
   }, []);
 
+  // Don't auto-play — host starts each clip. Stop when leaving open.
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !track) return;
-    const spinning = state.mode === "open" || state.audioPlaying;
-    if (spinning) {
-      audio.currentTime = 0;
-      void audio.play().catch(() => undefined);
-      if (ready) {
-        grooveRef.current?.kill();
-        grooveRef.current = discGroove(discRef.current);
-      }
+    if (!track) return;
+    if (state.mode !== "open") {
+      pauseClip();
     } else {
-      audio.pause();
-      grooveRef.current?.kill();
-      grooveRef.current = null;
+      // Fresh clue: reset to start, stay paused until host hits Play.
+      const audio = audioRef.current;
+      if (audio) audio.currentTime = 0;
+      setPlaying(false);
+      stopGroove();
     }
     return () => {
-      grooveRef.current?.kill();
-      grooveRef.current = null;
+      stopGroove();
     };
-  }, [state.mode, state.clueIndex, state.audioPlaying, track, ready]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional on mode/clue/track
+  }, [state.mode, state.clueIndex, track?.audioUrl, ready]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const onEnded = () => {
+      setPlaying(false);
+      stopGroove();
+    };
+    audio.addEventListener("ended", onEnded);
+    return () => audio.removeEventListener("ended", onEnded);
+  }, [track?.audioUrl]);
 
   useEffect(() => {
     if (!ready || state.mode !== "reveal" || !state.lastResult) return;
@@ -84,6 +127,15 @@ export function SoundPartyHost({ room, onAction }: GameViewProps) {
     };
   }, [ready, state.mode, state.clueIndex]);
 
+  const revealPrefix =
+    state.lastResult === "wrong"
+      ? "Wrong — "
+      : state.lastResult === "pass"
+        ? "Pass — "
+        : "";
+
+  const canControlAudio = state.mode === "open";
+
   return (
     <div
       ref={boardRef}
@@ -104,9 +156,39 @@ export function SoundPartyHost({ room, onAction }: GameViewProps) {
       <audio ref={audioRef} src={track?.audioUrl} preload="auto" />
       <p ref={listenRef} className="font-display text-lg text-cream/80">
         {state.mode === "open"
-          ? "♪ Listening…"
+          ? playing
+            ? "♪ Playing…"
+            : "Ready — host, hit Play"
           : `Clue ${state.clueIndex + 1}/${state.clueIds.length}`}
       </p>
+      {canControlAudio && (
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {playing ? (
+            <button
+              type="button"
+              className="btn-chunky bg-coral px-6 text-lg"
+              onClick={pauseClip}
+            >
+              Pause
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="btn-chunky bg-acid px-6 text-lg"
+              onClick={() => playClip(false)}
+            >
+              Play
+            </button>
+          )}
+          <button
+            type="button"
+            className="btn-chunky bg-cyan px-6 text-lg"
+            onClick={() => playClip(true)}
+          >
+            Replay
+          </button>
+        </div>
+      )}
       {state.mode === "reveal" && (
         <div ref={answerRef} className="text-center">
           <p
@@ -114,7 +196,7 @@ export function SoundPartyHost({ room, onAction }: GameViewProps) {
               state.lastResult === "correct" ? "text-acid" : "text-coral"
             }`}
           >
-            {state.lastResult === "wrong" ? "Wrong — " : ""}
+            {revealPrefix}
             {track?.title}
           </p>
           {track?.movie && <p className="mt-1 text-lg text-cream/70">{track.movie}</p>}
@@ -128,6 +210,7 @@ export function SoundPartyHost({ room, onAction }: GameViewProps) {
         submittedAnswer={state.submittedAnswer}
         onCorrect={() => onAction({ type: "judge", correct: true })}
         onWrong={() => onAction({ type: "judge", correct: false })}
+        onPass={() => onAction({ type: "pass" })}
         onNext={() => onAction({ type: "nextRound" })}
       />
     </div>

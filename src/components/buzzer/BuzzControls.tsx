@@ -188,6 +188,7 @@ export function HostJudgeBar({
   onCorrect,
   onWrong,
   onNext,
+  onPass,
   onStart,
   mode,
   lastResult,
@@ -198,10 +199,12 @@ export function HostJudgeBar({
   onCorrect: () => void;
   onWrong: () => void;
   onNext: () => void;
+  /** Skip clue with no points when neither team knows it. */
+  onPass?: () => void;
   /** If omitted, Open Buzzers is hidden (games opens buzzers automatically). */
   onStart?: () => void;
   mode: string;
-  lastResult?: "correct" | "wrong" | null;
+  lastResult?: "correct" | "wrong" | "pass" | null;
 }) {
   const teamChip =
     lockedTeam === "a"
@@ -241,6 +244,11 @@ export function HostJudgeBar({
           <button type="button" className="btn-chunky bg-coral text-lg" onClick={onWrong}>
             Wrong
           </button>
+          {onPass && (
+            <button type="button" className="btn-chunky bg-cream text-lg" onClick={onPass}>
+              Pass
+            </button>
+          )}
         </>
       )}
       {mode === "reveal" && (
@@ -249,9 +257,16 @@ export function HostJudgeBar({
         </button>
       )}
       {mode === "open" && (
-        <span className="animate-pulse rounded-xl border-2 border-ink bg-acid px-4 py-2.5 font-display text-lg text-ink shadow-[3px_3px_0_#07040a]">
-          Listening for buzz…
-        </span>
+        <>
+          <span className="animate-pulse rounded-xl border-2 border-ink bg-acid px-4 py-2.5 font-display text-lg text-ink shadow-[3px_3px_0_#07040a]">
+            Listening for buzz…
+          </span>
+          {onPass && (
+            <button type="button" className="btn-chunky bg-cream text-lg" onClick={onPass}>
+              Pass
+            </button>
+          )}
+        </>
       )}
     </div>
   );

@@ -125,6 +125,22 @@ export function reduceBuzzer(
         payload: { playerId: state.lockedBy },
       };
     }
+    case "pass": {
+      if (state.mode !== "open" && state.mode !== "locked") {
+        return { state, scores };
+      }
+      return {
+        state: {
+          ...state,
+          mode: "reveal",
+          lastResult: "pass",
+          lockedBy: null,
+          submittedAnswer: null,
+        },
+        scores,
+        event: "pass",
+      };
+    }
     case "nextRound": {
       const nextIndex = state.clueIndex + 1;
       if (nextIndex >= state.clueIds.length) {

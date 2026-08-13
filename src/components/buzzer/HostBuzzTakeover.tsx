@@ -33,6 +33,13 @@ export function HostBuzzTakeover({
     buzzBurst(panelRef.current);
     if (lastId.current !== lockedPlayer.id) {
       lastId.current = lockedPlayer.id;
+      try {
+        const sfx = new Audio("/packs/tamil-party/audio/buzz.wav");
+        sfx.volume = 0.9;
+        void sfx.play().catch(() => undefined);
+      } catch {
+        /* ignore */
+      }
       motionBus.emit("buzz-lock", {
         team,
         teamLabel: team === "a" ? "TEAM A" : "TEAM B",

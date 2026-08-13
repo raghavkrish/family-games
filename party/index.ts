@@ -34,7 +34,7 @@ function broadcastState(room: Party.Room, state: RoomState) {
       state,
       you: {
         connectionId: conn.id,
-        playerId: player?.id ?? (role === "host" ? null : conn.id),
+        playerId: player?.id ?? conn.id,
         role,
       },
     };
@@ -182,26 +182,64 @@ export default class Server implements Party.Server {
     switch (data.type) {
       case "hello": {
         if (data.role === "host") {
-          this.state = {
-            ...this.state,
-            hostConnectionId: sender.id,
-            players: this.state.players.some((p) => p.id === sender.id)
-              ? this.state.players.map((p) =>
-                  p.id === sender.id
-                    ? { ...p, connected: true, isHost: true, name: data.name ?? p.name }
-                    : p,
-                )
-              : [
-                  ...this.state.players,
-                  {
+          const priorHost =
+            (data.playerId
+              ? this.state.players.find((p) => p.id === data.playerId)
+              : undefined) ?? this.state.players.find((p) => p.isHost);
+
+          if (priorHost && priorHost.id !== sender.id) {
+            this.state = {
+              ...this.state,
+              hostConnectionId: sender.id,
+              players: this.state.players.map((p) => {
+                if (p.id === priorHost.id) {
+                  return {
+                    ...p,
                     id: sender.id,
-                    name: data.name ?? "Host",
-                    team: null,
                     connected: true,
                     isHost: true,
-                  },
-                ],
-          };
+                    name: data.name ?? p.name,
+                  };
+                }
+                return p.isHost ? { ...p, isHost: false } : p;
+              }),
+              scores: migrateScoreKey(this.state.scores, priorHost.id, sender.id),
+            };
+          } else if (this.state.players.some((p) => p.id === sender.id)) {
+            this.state = {
+              ...this.state,
+              hostConnectionId: sender.id,
+              players: this.state.players.map((p) =>
+                p.id === sender.id
+                  ? {
+                      ...p,
+                      connected: true,
+                      isHost: true,
+                      name: data.name ?? p.name,
+                    }
+                  : p.isHost && p.id !== sender.id
+                    ? { ...p, isHost: false }
+                    : p,
+              ),
+            };
+          } else {
+            this.state = {
+              ...this.state,
+              hostConnectionId: sender.id,
+              players: [
+                ...this.state.players.map((p) =>
+                  p.isHost ? { ...p, isHost: false } : p,
+                ),
+                {
+                  id: sender.id,
+                  name: data.name ?? "Host",
+                  team: null,
+                  connected: true,
+                  isHost: true,
+                },
+              ],
+            };
+          }
         } else {
           const existing = data.playerId
             ? this.state.players.find((p) => p.id === data.playerId)
@@ -439,6 +477,7 @@ export default class Server implements Party.Server {
         let action = data.action;
         const hostOnly = new Set([
           "judge",
+          "pass",
           "nextRound",
           "startRound",
           "revealNext",
