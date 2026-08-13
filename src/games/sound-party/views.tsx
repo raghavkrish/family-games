@@ -143,7 +143,7 @@ export function SoundPartyHost({ room, onAction }: GameViewProps) {
     >
       {state.mode === "locked" && <HostBuzzTakeover lockedPlayer={locked} />}
       <p className="font-display text-sm uppercase tracking-widest text-coral">
-        Sound Party
+        Keladi Kanmani
       </p>
       <div
         ref={discRef}
@@ -236,7 +236,7 @@ export function SoundPartyPlayer({ room, playerId, onAction }: GameViewProps) {
             : "Wait for the next track";
 
   return (
-    <PhoneBuzzerStage team={me?.team ?? null} title="Sound Party" status={status}>
+    <PhoneBuzzerStage team={me?.team ?? null} title="Keladi Kanmani" status={status}>
       <BuzzButton
         phase={state.mode}
         lockedByMe={isLockedByMe}

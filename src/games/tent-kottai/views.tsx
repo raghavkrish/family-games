@@ -6,9 +6,7 @@ import type { TentKottaiGameId, TentKottaiState } from "@shared/types";
 import { getPack, tentSection } from "@shared/packs";
 
 function tentLabel(gameId: TentKottaiGameId) {
-  return gameId === "tent-kottai-movies"
-    ? "Tent Kottai · Movies"
-    : "Tent Kottai · Songs";
+  return gameId === "tent-kottai-movies" ? "Panchathanthiram" : "Isaignani";
 }
 import { AnswerForm, BuzzButton, HostJudgeBar, PhoneBuzzerStage } from "@/components/buzzer/BuzzControls";
 import { HostBuzzTakeover } from "@/components/buzzer/HostBuzzTakeover";
@@ -43,44 +41,42 @@ export function TentKottaiHost({ room, onAction }: GameViewProps) {
   const boardRef = useRef<HTMLDivElement>(null);
   const prevRevealed = useRef(revealedCount);
   const ready = useGsapReady();
-  const [enlargedSrc, setEnlargedSrc] = useState<string | null>(null);
+  /** Full-viewport focus for a tile (image URL or emoji/text). */
+  const [enlargedTile, setEnlargedTile] = useState<string | null>(null);
 
   useEffect(() => {
     motionBus.emit("scene", { cue: "tent-pop" });
   }, []);
 
   useEffect(() => {
-    setEnlargedSrc(null);
+    setEnlargedTile(null);
+    prevRevealed.current = 0;
   }, [state.clueIndex]);
 
   useEffect(() => {
-    if (!enlargedSrc) return;
+    if (!enlargedTile) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setEnlargedSrc(null);
+      if (e.key === "Escape") setEnlargedTile(null);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [enlargedSrc]);
+  }, [enlargedTile]);
 
   useEffect(() => {
     if (!ready || !boardRef.current) return;
     clueSoftIn(boardRef.current.querySelector(".clue-title"));
   }, [ready, state.clueIndex]);
 
+  // Reveal next → full-viewport first; dismiss settles the tile into the grid.
   useEffect(() => {
-    if (!ready || !boardRef.current) return;
     if (revealedCount > prevRevealed.current) {
-      const tile = boardRef.current.querySelector(
-        `[data-tile-index="${revealedCount - 1}"] .tile-face`,
-      );
-      clueSoftIn(tile);
+      const item = tiles[revealedCount - 1];
+      if (item) setEnlargedTile(item);
     }
     prevRevealed.current = revealedCount;
-  }, [ready, revealedCount]);
-
-  useEffect(() => {
-    prevRevealed.current = 0;
-  }, [state.clueIndex]);
+    // tiles read only when count bumps; avoid re-running on new array identity
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+  }, [revealedCount]);
 
   useEffect(() => {
     if (!ready || state.mode !== "reveal" || !state.lastResult) return;
@@ -156,7 +152,7 @@ export function TentKottaiHost({ room, onAction }: GameViewProps) {
                       type="button"
                       className="tile-face absolute inset-0 flex cursor-zoom-in items-center justify-center bg-ink"
                       aria-label="Enlarge clue"
-                      onClick={() => setEnlargedSrc(item)}
+                      onClick={() => setEnlargedTile(item)}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -224,30 +220,34 @@ export function TentKottaiHost({ room, onAction }: GameViewProps) {
         />
       </div>
 
-      {enlargedSrc && (
+      {enlargedTile && (
         <div
-          className="absolute inset-0 z-[70] flex items-center justify-center bg-ink/80 p-4 md:p-8"
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-ink/95 p-3 md:p-4"
           role="dialog"
           aria-modal="true"
           aria-label="Enlarged clue"
-          onClick={() => setEnlargedSrc(null)}
+          onClick={() => setEnlargedTile(null)}
         >
           <div
-            className="relative flex max-h-[90%] max-w-[90%] flex-col items-center gap-3"
+            className="relative flex h-full w-full max-h-[100dvh] max-w-[100dvw] flex-col items-center justify-center gap-3 overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="overflow-hidden rounded-3xl border-[5px] border-ink bg-paper shadow-[10px_10px_0_#ff2a1f]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+            {isImageTile(enlargedTile) ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={enlargedSrc}
+                src={enlargedTile}
                 alt=""
-                className="max-h-[min(78vh,720px)] max-w-[min(90vw,900px)] object-contain"
+                className="min-h-0 w-full flex-1 object-contain"
               />
-            </div>
+            ) : (
+              <p className="flex min-h-0 w-full flex-1 items-center justify-center px-4 text-center font-display text-[clamp(4rem,18vw,12rem)] leading-none text-cream">
+                {enlargedTile}
+              </p>
+            )}
             <button
               type="button"
-              className="btn-chunky bg-acid px-6 py-3 text-lg"
-              onClick={() => setEnlargedSrc(null)}
+              className="btn-chunky shrink-0 bg-acid px-8 py-3 text-xl"
+              onClick={() => setEnlargedTile(null)}
             >
               Close
             </button>

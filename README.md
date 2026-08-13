@@ -1,11 +1,12 @@
-# Family Games Party Hub
+# Kollywood Games Night
 
-Jackbox-style party games for an indoor Tamil family night: **TV host + phone controllers**.
+Jackbox-style party games for an indoor Tamil terrace night: **TV host + phone buzzers**.
 
 ## Games
-1. **Tent Kottai** — picture connexions + buzzers  
-2. **Sound Party** — Tamil song clips + buzzers  
-3. **Cinema Charades** — act out Tamil movies  
+1. **Panchathanthiram** — picture connexions + buzzers
+2. **Isaignani** — picture connexions + buzzers
+3. **Keladi Kanmani** — Tamil song clips + buzzers
+4. **Nee Nadigan da!** — act out Tamil movies
 
 ## Stack
 - Next.js (App Router) + Tailwind  
@@ -50,11 +51,40 @@ npm start
 
 Use `npm run start:next` only if PartyKit is already running elsewhere (or deployed).
 
+## HTTPS on your domain (e.g. games.raghavk.me)
+
+Do **not** expose PartyKit on public `:1999`. Terminate TLS on **443** and proxy WebSockets.
+
+1. DNS: `games.raghavk.me` and `party.games.raghavk.me`  
+2. Server env (then rebuild):
+
+```bash
+HOST=127.0.0.1
+PORT=3001
+PARTYKIT_PORT=1999
+NEXT_PUBLIC_PARTYKIT_PORT=
+NEXT_PUBLIC_PARTYKIT_HOST=party.games.raghavk.me
+```
+
+3. Install nginx site from [`deploy/nginx/family-games`](deploy/nginx/family-games) (**HTTP only** — no `ssl` listen until certs exist), then Certbot:
+
+```bash
+sudo cp deploy/nginx/family-games /etc/nginx/sites-available/games
+sudo ln -sf /etc/nginx/sites-available/games /etc/nginx/sites-enabled/games
+sudo nginx -t && sudo systemctl reload nginx
+sudo certbot --nginx -d games.raghavk.me -d party.games.raghavk.me
+```
+
+Certbot adds `listen 443 ssl` and `ssl_certificate` lines. Enabling `ssl` without those certs causes:
+`no "ssl_certificate" is defined for the "listen ... ssl" directive`.
+
+4. `npm run build && npm start`  
+5. Confirm DevTools WS → `wss://party.games.raghavk.me/parties/...` (101)
+
 ## Content packs
 Edit `shared/packs.ts` to add puzzles, tracks, and movies.  
 Replace `/packs/tamil-party/audio/placeholder-beep.wav` with your own clips (keep copyrighted audio out of git).
 
-## Cloud deploy
-- Deploy Next (e.g. Vercel) with `npm run build`  
-- `npm run deploy:party` for PartyKit, then set `NEXT_PUBLIC_PARTYKIT_HOST` to your deployed host (rebuild Next so the env is baked in)  
-- Or run Next alone with `npm run start:next` against that deployed PartyKit host  
+## Cloud PartyKit
+- `npm run deploy:party`, then set `NEXT_PUBLIC_PARTYKIT_HOST` to the PartyKit cloud host and rebuild  
+- Or run Next with `npm run start:next` against that host  

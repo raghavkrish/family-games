@@ -94,7 +94,7 @@ export function CharadesHost({ room, onAction }: GameViewProps) {
       ref={boardRef}
       className="relative flex h-full flex-col items-center justify-center gap-6 text-center"
     >
-      <p className="font-display text-sm uppercase tracking-widest text-acid">Cinema Charades</p>
+      <p className="font-display text-sm uppercase tracking-widest text-acid">Nee Nadigan da!</p>
       <h2 className="font-display text-5xl text-cream md:text-7xl">
         Team {state.actingTeam?.toUpperCase()} is up
       </h2>
@@ -198,7 +198,7 @@ export function CharadesPlayer({ room, playerId }: GameViewProps) {
       }`}
     >
       <p className="font-display text-xs uppercase tracking-[0.2em] text-cream/60">
-        Cinema Charades
+        Nee Nadigan da!
       </p>
       {showSecret ? (
         <div

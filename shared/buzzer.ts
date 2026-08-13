@@ -43,6 +43,26 @@ function award(
   return next;
 }
 
+/** Award points to the opposing team (and their connected controller if any). */
+function awardOpponent(
+  scores: Scores,
+  players: GameContext["players"],
+  playerId: string,
+  points: number,
+): Scores {
+  const player = players.find((p) => p.id === playerId);
+  const team = player?.team;
+  if (team !== "a" && team !== "b") return scores;
+  const other: "a" | "b" = team === "a" ? "b" : "a";
+  const next = { ...scores };
+  next[`team:${other}`] = (next[`team:${other}`] ?? 0) + points;
+  const opponent = players.find((p) => p.team === other && !p.isHost && p.connected);
+  if (opponent) {
+    next[opponent.id] = (next[opponent.id] ?? 0) + points;
+  }
+  return next;
+}
+
 export function reduceBuzzer(
   state: BuzzerRoundState,
   action: GameAction,
@@ -112,6 +132,9 @@ export function reduceBuzzer(
       const correct = action.correct || auto;
       if (correct) {
         scores = award(scores, ctx.players, state.lockedBy, pointsCorrect);
+      } else {
+        // Wrong guess — opposing team banks the points (no second buzz).
+        scores = awardOpponent(scores, ctx.players, state.lockedBy, pointsCorrect);
       }
       // One buzz per clue — no second-chance for the other team.
       return {

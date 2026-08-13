@@ -99,7 +99,7 @@ export default function HomePage() {
                 <span className="block text-coral drop-shadow-[4px_4px_0_#07040a]">NIGHT</span>
               </h1>
               <p className="hero-sub mx-auto mt-5 max-w-lg text-lg text-cream/85 md:text-xl">
-                Phones as buzzers. TV as the stage. Tent Kottai, Sound Party, Charades.
+                Phones as buzzers. TV as the stage. Panchathanthiram, Isaignani, Keladi Kanmani, Nee Nadigan da!
               </p>
             </div>
 

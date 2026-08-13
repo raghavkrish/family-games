@@ -24,7 +24,7 @@ export type GameModule = {
 export const GAMES: GameModule[] = [
   {
     id: "tent-kottai-movies",
-    title: "Tent Kottai · Movies",
+    title: "Panchathanthiram",
     blurb: "Picture connexions — Tamil films. Buzz first, guess wild.",
     accent: "bg-cyan",
     minPlayers: 2,
@@ -34,7 +34,7 @@ export const GAMES: GameModule[] = [
   },
   {
     id: "tent-kottai-songs",
-    title: "Tent Kottai · Songs",
+    title: "Isaignani",
     blurb: "Picture connexions — Tamil songs. Buzz first, guess wild.",
     accent: "bg-cyan",
     minPlayers: 2,
@@ -44,7 +44,7 @@ export const GAMES: GameModule[] = [
   },
   {
     id: "sound-party",
-    title: "Sound Party",
+    title: "Keladi Kanmani",
     blurb: "Tamil song clips. Name that tune!",
     accent: "bg-coral",
     minPlayers: 2,
@@ -54,7 +54,7 @@ export const GAMES: GameModule[] = [
   },
   {
     id: "tamil-charades",
-    title: "Cinema Charades",
+    title: "Nee Nadigan da!",
     blurb: "Act out Tamil movies. No talking… or maybe a little.",
     accent: "bg-acid",
     minPlayers: 4,
