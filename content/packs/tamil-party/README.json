@@ -1,6 +1,6 @@
 {
   "id": "tamil-party",
-  "title": "Tamil Party Pack",
+  "title": "Kollywood Games Night Pack",
   "locale": "ta-IN",
   "note": "Canonical pack data also lives in shared/packs.ts for the PartyKit server. Extend both (or load JSON from disk later) when adding clues. Put real Tamil song clips in public/packs/tamil-party/audio/ and point audioUrl at them — do not commit copyrighted audio."
 }
