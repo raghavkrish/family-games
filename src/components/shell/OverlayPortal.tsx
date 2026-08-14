@@ -9,6 +9,8 @@ import {
   shakeStage,
   prefersReducedMotion,
 } from "@/lib/motion";
+import { getGame } from "@/games";
+import type { GameId } from "@shared/types";
 
 type OverlayKind = "buzz-lock" | "correct" | "wrong" | "game-start" | "round-open" | null;
 
@@ -42,7 +44,9 @@ export function OverlayPortal() {
       }),
       motionBus.on("game-start", (p) => {
         setTeam(null);
-        setLabel(String(p?.gameId ?? "LET'S GO").toUpperCase());
+        const id = p?.gameId as GameId | undefined;
+        const title = id ? getGame(id)?.title : null;
+        setLabel((title ?? "LET'S GO").toUpperCase());
         setKind("game-start");
       }),
       motionBus.on("round-open", () => {
